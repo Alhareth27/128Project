@@ -13,7 +13,13 @@ public class textEditor extends JFrame implements ActionListener {
     JScrollPane Scroll;
     JSpinner Fontspinner;
     JLabel fontText;
-    JColorChooser fontColor;
+    JButton fontcolor;
+    JComboBox fontlist;
+    JMenuBar MenuBar;
+    JMenu menu;
+    JMenuItem Open;
+    JMenuItem Exit;
+    JMenuItem Save;
 
     textEditor() {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -28,7 +34,7 @@ public class textEditor extends JFrame implements ActionListener {
         AreaText.setFont(new Font("Arial", Font.PLAIN, 100));
 
         Scroll = new JScrollPane(AreaText);
-        Scroll.setPreferredSize(new Dimension(800, 950));
+        Scroll.setPreferredSize(new Dimension(900, 950));
         Scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
         fontText = new JLabel("Font: ");
@@ -45,15 +51,46 @@ public class textEditor extends JFrame implements ActionListener {
             }
 
         });
+        fontcolor = new JButton("Color");
+        fontcolor.addActionListener(this);
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        String[] fonts = ge.getAvailableFontFamilyNames();
+        fontlist = new JComboBox<>(fonts);
+        fontlist.addActionListener(this);
 
-        this.add(Scroll);
-        this.setVisible(true);
+        // --------------------------------
+        MenuBar = new JMenuBar();
+        menu = new JMenu("File");
+        Open = new JMenuItem("Open");
+        Save = new JMenuItem("Save");
+        Exit = new JMenuItem("Exit");
+        menu.add(Open);
+        menu.add(Save);
+        menu.add(Exit);
+        MenuBar.add(menu);
+
+        // -----------------------------------
+        this.setJMenuBar(MenuBar);
         this.add(fontText);
         this.add(Fontspinner);
+        this.add(fontcolor);
+        this.add(fontlist);
+        this.add(Scroll);
+        this.setVisible(true);
+
     }
 
     public void actionPerformed(ActionEvent e) {
 
+        if (e.getSource() == fontcolor) {
+            JColorChooser colorChooser = new JColorChooser();
+            Color color = colorChooser.showDialog(null, "Choose a Color", Color.BLACK);
+            AreaText.setForeground(color);
+        }
+        if (e.getSource() == fontlist) {
+            Font font1 = new Font((String) fontlist.getSelectedItem(), Font.PLAIN, AreaText.getFont().getSize());
+            AreaText.setFont(font1);
+        }
     }
 
     public static void main(String[] args) {

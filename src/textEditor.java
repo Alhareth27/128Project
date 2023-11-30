@@ -68,6 +68,9 @@ public class textEditor extends JFrame implements ActionListener {
         menu.add(Save);
         menu.add(Exit);
         MenuBar.add(menu);
+        Open.addActionListener(this);
+        Save.addActionListener(this);
+        Exit.addActionListener(this);
 
         // -----------------------------------
         this.setJMenuBar(MenuBar);
@@ -91,6 +94,60 @@ public class textEditor extends JFrame implements ActionListener {
             Font font1 = new Font((String) fontlist.getSelectedItem(), Font.PLAIN, AreaText.getFont().getSize());
             AreaText.setFont(font1);
         }
+        if (e.getSource() == Open) {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setCurrentDirectory(new File("."));
+            FileNameExtensionFilter filter = new FileNameExtensionFilter("text Files", "txt");
+            fileChooser.setFileFilter(filter);
+            int response = fileChooser.showOpenDialog(null);
+
+            if (response == JFileChooser.APPROVE_OPTION) {
+                File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+                Scanner infile = null;
+                try {
+                    infile = new Scanner(file);
+                    if (file.isFile()) {
+                        while (infile.hasNextLine()) {
+                            String line = infile.nextLine() + "\n";
+                            AreaText.append(line);
+
+                        }
+                    }
+                } catch (FileNotFoundException e1) {
+                    e1.printStackTrace();
+                } finally {
+                    infile.close();
+                }
+            }
+        }
+        if (e.getSource() == Exit) {
+            System.exit(ABORT);
+        }
+        if (e.getSource() == Save) {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setCurrentDirectory(new File("."));
+
+            int response = fileChooser.showSaveDialog(null);
+
+            if (response == JFileChooser.APPROVE_OPTION) {
+                File file;
+                PrintWriter outfile = null;
+
+                file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+
+                try {
+                    outfile = new PrintWriter(file);
+                    outfile.println(AreaText.getText());
+                    }
+                } catch (FileNotFoundException e1) {
+                    e1.printStackTrace();
+                } finally {
+                    outfile.close();
+                }
+            }
+
+        }
+
     }
 
     public static void main(String[] args) {

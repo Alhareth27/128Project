@@ -7,6 +7,8 @@ import javax.swing.event.*;
 import javax.swing.filechooser.*;
 import javax.swing.undo.UndoManager;
 
+import org.w3c.dom.Text;
+
 public class textEditor extends JFrame implements ActionListener {
 
     JTextArea AreaText;
@@ -14,6 +16,7 @@ public class textEditor extends JFrame implements ActionListener {
     JSpinner Fontspinner;
     JLabel fontText;
     JButton fontcolor;
+    JButton bold;
     JComboBox fontlist;
     JMenuBar MenuBar;
     JMenu menu;
@@ -21,6 +24,7 @@ public class textEditor extends JFrame implements ActionListener {
     JMenuItem Exit;
     JMenuItem Save;
     JMenuItem Undo;
+    int countofBold = 1;
     // private ArrayDeque<String> stack;
     private UndoManager undoManager;
 
@@ -39,7 +43,7 @@ public class textEditor extends JFrame implements ActionListener {
         AreaText = new JTextArea();
         AreaText.setWrapStyleWord(true);
         AreaText.setLineWrap(true);
-        AreaText.setFont(new Font("Arial", Font.PLAIN, 100));
+        AreaText.setFont(new Font("Arial", Font.PLAIN, 30));
 
         Scroll = new JScrollPane(AreaText);
         Scroll.setPreferredSize(new Dimension(900, 950));
@@ -48,7 +52,7 @@ public class textEditor extends JFrame implements ActionListener {
         fontText = new JLabel("Font: ");
         Fontspinner = new JSpinner();
         Fontspinner.setPreferredSize(new Dimension(50, 50));
-        Fontspinner.setValue(100);
+        Fontspinner.setValue(30);
         Fontspinner.setLocation(30, 0);
 
         Fontspinner.addChangeListener(new ChangeListener() {
@@ -79,6 +83,8 @@ public class textEditor extends JFrame implements ActionListener {
         };
         getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(undoKeyStroke, "undoKeystroke");
         getRootPane().getActionMap().put("undoKeystroke", undoAction);
+        bold = new JButton("Bold");
+        bold.addActionListener(this);
 
         // stack = new ArrayDeque<String>();
         // AreaText.getDocument().addDocumentListener(new DocumentListener() {
@@ -123,6 +129,7 @@ public class textEditor extends JFrame implements ActionListener {
 
         // -----------------------------------
         this.setJMenuBar(MenuBar);
+        this.add(bold);
         this.add(fontText);
         this.add(Fontspinner);
         this.add(fontcolor);
@@ -221,7 +228,17 @@ public class textEditor extends JFrame implements ActionListener {
                 undoManager.undo(); // Undo the last edit
             }
         }
-
+        if (e.getSource() == bold) {
+            countofBold++;
+            Font currentFont = AreaText.getFont();
+            if (countofBold % 2 == 0) {
+                // Set the font to bold
+                AreaText.setFont(currentFont.deriveFont(Font.BOLD));
+            } else {
+                // Set the font to plain
+                AreaText.setFont(currentFont.deriveFont(Font.PLAIN));
+            }
+        }
     }
 
     public static void main(String[] args) {

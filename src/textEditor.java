@@ -3,7 +3,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
-import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.*;
 
@@ -20,6 +19,8 @@ public class textEditor extends JFrame implements ActionListener {
     JMenuItem Open;
     JMenuItem Exit;
     JMenuItem Save;
+    JMenuItem Undo;
+    private ArrayDeque<String> stack;
 
     textEditor() {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -57,6 +58,26 @@ public class textEditor extends JFrame implements ActionListener {
         String[] fonts = ge.getAvailableFontFamilyNames();
         fontlist = new JComboBox<>(fonts);
         fontlist.addActionListener(this);
+        stack = new ArrayDeque<String>();
+        AreaText.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                update();
+                throw new UnsupportedOperationException("Unimplemented method 'insertUpdate'");
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                update();
+                throw new UnsupportedOperationException("Unimplemented method 'removeUpdate'");
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                update();
+                throw new UnsupportedOperationException("Unimplemented method 'changedUpdate'");
+            }
+        });
 
         // --------------------------------
         MenuBar = new JMenuBar();
@@ -64,13 +85,16 @@ public class textEditor extends JFrame implements ActionListener {
         Open = new JMenuItem("Open");
         Save = new JMenuItem("Save");
         Exit = new JMenuItem("Exit");
+        Undo = new JMenuItem("Undo");
         menu.add(Open);
         menu.add(Save);
         menu.add(Exit);
+        menu.add(Undo);
         MenuBar.add(menu);
         Open.addActionListener(this);
         Save.addActionListener(this);
         Exit.addActionListener(this);
+        Undo.addActionListener(this);
 
         // -----------------------------------
         this.setJMenuBar(MenuBar);
@@ -81,6 +105,23 @@ public class textEditor extends JFrame implements ActionListener {
         this.add(Scroll);
         this.setVisible(true);
 
+    }
+
+    public void update() {
+        String currentText = AreaText.getText();
+        stack.push(currentText);
+    }
+
+    public void Undoevent() {
+        if (!stack.isEmpty()) {
+            stack.pop();
+        }
+        if (!stack.isEmpty()) {
+            String previousText = stack.peek();
+            AreaText.setText(previousText);
+        } else {
+            AreaText.setText(".");
+        }
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -138,7 +179,7 @@ public class textEditor extends JFrame implements ActionListener {
                 try {
                     outfile = new PrintWriter(file);
                     outfile.println(AreaText.getText());
-                    }
+
                 } catch (FileNotFoundException e1) {
                     e1.printStackTrace();
                 } finally {
@@ -147,7 +188,9 @@ public class textEditor extends JFrame implements ActionListener {
             }
 
         }
-
+        if (e.getSource() == Undo) {
+            Undoevent();
+        }
     }
 
     public static void main(String[] args) {

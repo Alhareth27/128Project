@@ -17,6 +17,7 @@ public class textEditor extends JFrame implements ActionListener {
     JLabel fontText;
     JButton fontcolor;
     JButton bold;
+    JButton italic;
     JComboBox fontlist;
     JMenuBar MenuBar;
     JMenu menu;
@@ -25,6 +26,7 @@ public class textEditor extends JFrame implements ActionListener {
     JMenuItem Save;
     JMenuItem Undo;
     int countofBold = 1;
+    int countofItalic = 1;
     // private ArrayDeque<String> stack;
     private UndoManager undoManager;
 
@@ -85,6 +87,8 @@ public class textEditor extends JFrame implements ActionListener {
         getRootPane().getActionMap().put("undoKeystroke", undoAction);
         bold = new JButton("Bold");
         bold.addActionListener(this);
+        italic = new JButton("Italic");
+        italic.addActionListener(this);
 
         // stack = new ArrayDeque<String>();
         // AreaText.getDocument().addDocumentListener(new DocumentListener() {
@@ -130,6 +134,7 @@ public class textEditor extends JFrame implements ActionListener {
         // -----------------------------------
         this.setJMenuBar(MenuBar);
         this.add(bold);
+        this.add(italic);
         this.add(fontText);
         this.add(Fontspinner);
         this.add(fontcolor);
@@ -239,6 +244,18 @@ public class textEditor extends JFrame implements ActionListener {
                 AreaText.setFont(currentFont.deriveFont(Font.PLAIN));
             }
         }
+        if (e.getSource() == italic) {
+            countofItalic++;
+            Font currentFont = AreaText.getFont();
+            if (countofItalic % 2 == 0) {
+                // Set the font to bold
+                AreaText.setFont(currentFont.deriveFont(Font.ITALIC));
+            } else {
+                // Set the font to plain
+                AreaText.setFont(currentFont.deriveFont(Font.PLAIN));
+            }
+        }
+
     }
 
     public static void main(String[] args) {

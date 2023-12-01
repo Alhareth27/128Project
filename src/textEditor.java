@@ -25,10 +25,12 @@ public class textEditor extends JFrame implements ActionListener {
     JMenuItem Exit;
     JMenuItem Save;
     JMenuItem Undo;
+    JMenuItem Redo;
     int countofBold = 1;
     int countofItalic = 1;
-    // private ArrayDeque<String> stack;
-    private UndoManager undoManager;
+    public ArrayDeque<String> stack;
+    public UndoManager undoManager;
+    private TextVersions textState;
 
     textEditor() {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -71,24 +73,26 @@ public class textEditor extends JFrame implements ActionListener {
         String[] fonts = ge.getAvailableFontFamilyNames();
         fontlist = new JComboBox<>(fonts);
         fontlist.addActionListener(this);
-        undoManager = new UndoManager();
-        AreaText.getDocument().addUndoableEditListener(e -> {
-            undoManager.addEdit(e.getEdit());
-        });
-        Action undoAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (undoManager.canUndo()) {
-                    undoManager.undo(); // Call the method for Undo action
-                }
-            }
-        };
-        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(undoKeyStroke, "undoKeystroke");
-        getRootPane().getActionMap().put("undoKeystroke", undoAction);
+        // undoManager = new UndoManager();
+        // AreaText.getDocument().addUndoableEditListener(e -> {
+        // undoManager.addEdit(e.getEdit());
+        // });
+        // Action undoAction = new AbstractAction() {
+        // @Override
+        // public void actionPerformed(ActionEvent e) {
+        // if (undoManager.canUndo()) {
+        // undoManager.undo();
+        // }
+        // }
+        // };
+        // getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(undoKeyStroke,
+        // "undoKeystroke");
+        // getRootPane().getActionMap().put("undoKeystroke", undoAction);
         bold = new JButton("Bold");
         bold.addActionListener(this);
         italic = new JButton("Italic");
         italic.addActionListener(this);
+        textState = new TextVersions(AreaText);
 
         // stack = new ArrayDeque<String>();
         // AreaText.getDocument().addDocumentListener(new DocumentListener() {
@@ -121,15 +125,18 @@ public class textEditor extends JFrame implements ActionListener {
         Save = new JMenuItem("Save");
         Exit = new JMenuItem("Exit");
         Undo = new JMenuItem("Undo");
+        Redo = new JMenuItem("Redo");
         menu.add(Open);
         menu.add(Save);
         menu.add(Exit);
         menu.add(Undo);
+        menu.add(Redo);
         MenuBar.add(menu);
         Open.addActionListener(this);
         Save.addActionListener(this);
         Exit.addActionListener(this);
         Undo.addActionListener(this);
+        Redo.addActionListener(this);
 
         // -----------------------------------
         this.setJMenuBar(MenuBar);
@@ -228,19 +235,23 @@ public class textEditor extends JFrame implements ActionListener {
         // if (e.getSource() == Undo) {
         // Undoevent();
         // }
+        // if (e.getSource() == Undo) {
+        // if (undoManager.canUndo()) {
+        // undoManager.undo();
+        // }
+        // }
         if (e.getSource() == Undo) {
-            if (undoManager.canUndo()) {
-                undoManager.undo(); // Undo the last edit
-            }
+            textState.undo();
+        }
+        if (e.getSource() == Redo) {
+            textState.redo();
         }
         if (e.getSource() == bold) {
             countofBold++;
             Font currentFont = AreaText.getFont();
             if (countofBold % 2 == 0) {
-                // Set the font to bold
                 AreaText.setFont(currentFont.deriveFont(Font.BOLD));
             } else {
-                // Set the font to plain
                 AreaText.setFont(currentFont.deriveFont(Font.PLAIN));
             }
         }
@@ -248,14 +259,11 @@ public class textEditor extends JFrame implements ActionListener {
             countofItalic++;
             Font currentFont = AreaText.getFont();
             if (countofItalic % 2 == 0) {
-                // Set the font to bold
                 AreaText.setFont(currentFont.deriveFont(Font.ITALIC));
             } else {
-                // Set the font to plain
                 AreaText.setFont(currentFont.deriveFont(Font.PLAIN));
             }
         }
-
     }
 
     public static void main(String[] args) {

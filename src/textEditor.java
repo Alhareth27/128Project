@@ -48,6 +48,33 @@ public class textEditor extends JFrame implements ActionListener {
         AreaText.setWrapStyleWord(true);
         AreaText.setLineWrap(true);
         AreaText.setFont(new Font("Arial", Font.PLAIN, 30));
+        AreaText.addMouseListener(new MouseListener() {
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (AreaText.getSelectedText() != null) { // See if they selected something 
+                    String s = AreaText.getSelectedText();
+                    System.out.println(s);
+                }
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+            
+        });
 
         Scroll = new JScrollPane(AreaText);
         Scroll.setPreferredSize(new Dimension(900, 950));
@@ -149,6 +176,7 @@ public class textEditor extends JFrame implements ActionListener {
         this.add(Scroll);
         this.setVisible(true);
 
+        
         // public met update() {
         // Character currentText = AreaText.getText().getChars(ERROR, ALLBITS, null,
         // ABORT);

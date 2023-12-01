@@ -5,6 +5,7 @@ import java.io.*;
 import java.util.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.*;
+import javax.swing.undo.UndoManager;
 
 public class textEditor extends JFrame implements ActionListener {
 
@@ -20,7 +21,8 @@ public class textEditor extends JFrame implements ActionListener {
     JMenuItem Exit;
     JMenuItem Save;
     JMenuItem Undo;
-    private ArrayDeque<String> stack;
+    // private ArrayDeque<String> stack;
+    private UndoManager undoManager;
 
     textEditor() {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -28,6 +30,11 @@ public class textEditor extends JFrame implements ActionListener {
         this.setSize(1000, 1000);
         this.setLayout(new FlowLayout());
         this.setLocationRelativeTo(null);
+        // Container contentPane = this.getContentPane();
+        // Container contentPane = getContentPane();
+
+        KeyStroke undoKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_Z,
+                Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
 
         AreaText = new JTextArea();
         AreaText.setWrapStyleWord(true);
@@ -58,26 +65,44 @@ public class textEditor extends JFrame implements ActionListener {
         String[] fonts = ge.getAvailableFontFamilyNames();
         fontlist = new JComboBox<>(fonts);
         fontlist.addActionListener(this);
-        stack = new ArrayDeque<String>();
-        AreaText.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                update();
-                throw new UnsupportedOperationException("Unimplemented method 'insertUpdate'");
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                update();
-                throw new UnsupportedOperationException("Unimplemented method 'removeUpdate'");
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                update();
-                throw new UnsupportedOperationException("Unimplemented method 'changedUpdate'");
-            }
+        undoManager = new UndoManager();
+        AreaText.getDocument().addUndoableEditListener(e -> {
+            undoManager.addEdit(e.getEdit());
         });
+        Action undoAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (undoManager.canUndo()) {
+                    undoManager.undo(); // Call the method for Undo action
+                }
+            }
+        };
+        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(undoKeyStroke, "undoKeystroke");
+        getRootPane().getActionMap().put("undoKeystroke", undoAction);
+
+        // stack = new ArrayDeque<String>();
+        // AreaText.getDocument().addDocumentListener(new DocumentListener() {
+        // @Override
+        // public void insertUpdate(DocumentEvent e) {
+        // update();
+        // throw new UnsupportedOperationException("Unimplemented method
+        // 'insertUpdate'");
+        // }
+
+        // @Override
+        // public void removeUpdate(DocumentEvent e) {
+        // update();
+        // throw new UnsupportedOperationException("Unimplemented method
+        // 'removeUpdate'");
+        // }
+
+        // @Override
+        // public void changedUpdate(DocumentEvent e) {
+        // update();
+        // throw new UnsupportedOperationException("Unimplemented method
+        // 'changedUpdate'");
+        // }
+        // });
 
         // --------------------------------
         MenuBar = new JMenuBar();
@@ -105,23 +130,23 @@ public class textEditor extends JFrame implements ActionListener {
         this.add(Scroll);
         this.setVisible(true);
 
-    }
+        // public met update() {
+        // Character currentText = AreaText.getText().getChars(ERROR, ALLBITS, null,
+        // ABORT);
+        // ;
+        // stack.push(currentText);
+        // }
 
-    public void update() {
-        String currentText = AreaText.getText();
-        stack.push(currentText);
-    }
-
-    public void Undoevent() {
-        if (!stack.isEmpty()) {
-            stack.pop();
-        }
-        if (!stack.isEmpty()) {
-            String previousText = stack.peek();
-            AreaText.setText(previousText);
-        } else {
-            AreaText.setText(".");
-        }
+        // public void Undoevent() {
+        // if (!stack.isEmpty()) {
+        // stack.pop();
+        // }
+        // if (!stack.isEmpty()) {
+        // String previousText = stack.peek();
+        // AreaText.setText(previousText);
+        // } else {
+        // AreaText.setText(".");
+        // }
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -186,11 +211,17 @@ public class textEditor extends JFrame implements ActionListener {
                     outfile.close();
                 }
             }
-
         }
+        // }
+        // if (e.getSource() == Undo) {
+        // Undoevent();
+        // }
         if (e.getSource() == Undo) {
-            Undoevent();
+            if (undoManager.canUndo()) {
+                undoManager.undo(); // Undo the last edit
+            }
         }
+
     }
 
     public static void main(String[] args) {

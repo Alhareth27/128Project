@@ -40,7 +40,8 @@ public class textEditor extends JFrame implements ActionListener {
     int countofItalic = 1;
     public ArrayDeque<String> stack;
     public UndoManager undoManager;
-    private TextVersions textState;
+    public TextVersions textState;
+    boolean actionIsPerformed = false;
 
     textEditor() {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -300,9 +301,6 @@ public class textEditor extends JFrame implements ActionListener {
         // }
         if (e.getSource() == Undo) {
             textState.undo();
-        }
-        if (e.getSource() == Redo) {
-            textState.redo();
         }
         // if (e.getSource() == bold) {
         // countofBold++;

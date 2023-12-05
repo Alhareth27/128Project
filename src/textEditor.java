@@ -1,3 +1,5 @@
+import javax.lang.model.element.Element;
+import javax.print.attribute.AttributeSet;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -5,17 +7,22 @@ import java.io.*;
 import java.util.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.*;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
+import javax.swing.text.StyledDocument;
 import javax.swing.undo.UndoManager;
 
 import org.w3c.dom.Text;
 
 public class textEditor extends JFrame implements ActionListener {
 
-    private static final Dimension WINDOW_SIZE = new Dimension(1000, 1000); 
+    private static final Dimension WINDOW_SIZE = new Dimension(1000, 1000);
     private static final Dimension SCROLL_BOUNDS = new Dimension(900, 750);
     private static final int DEFAULT_FONT_SIZE = 30;
 
     JTextArea textArea;
+    JTextArea selectedArea;
+
     JButton fontcolor;
     JButton bold;
     JButton italic;
@@ -45,7 +52,6 @@ public class textEditor extends JFrame implements ActionListener {
                 Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
 
         setUpTextArea();
-
 
         // undoManager = new UndoManager();
         // textArea.getDocument().addUndoableEditListener(e -> {
@@ -100,7 +106,6 @@ public class textEditor extends JFrame implements ActionListener {
         addScrollBar(textArea);
         this.setVisible(true);
 
-        
         // public met update() {
         // Character currentText = textArea.getText().getChars(ERROR, ALLBITS, null,
         // ABORT);
@@ -127,15 +132,21 @@ public class textEditor extends JFrame implements ActionListener {
         textArea.setFont(new Font("Arial", Font.PLAIN, 30));
         textArea.addMouseListener(new MouseListener() {
             // Not necessary
-            public void mouseClicked(MouseEvent e) {}
-            public void mousePressed(MouseEvent e) {}
-            public void mouseEntered(MouseEvent e) {}
-            public void mouseExited(MouseEvent e) {}
+            public void mouseClicked(MouseEvent e) {
+            }
+
+            public void mousePressed(MouseEvent e) {
+            }
+
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            public void mouseExited(MouseEvent e) {
+            }
 
             public void mouseReleased(MouseEvent e) {
-                if (textArea.getSelectedText() != null) { // See if they selected something 
+                if (textArea.getSelectedText() != null) { // See if they selected something
                     String s = textArea.getSelectedText();
-                    System.out.println(s);
                 }
             }
         });
@@ -147,7 +158,6 @@ public class textEditor extends JFrame implements ActionListener {
         Scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         this.add(Scroll);
     }
-
 
     private void setUpFontSize() {
         JLabel fontText = new JLabel("Font Size: ");
@@ -197,6 +207,27 @@ public class textEditor extends JFrame implements ActionListener {
         button.addActionListener(this);
         this.add(button);
         return button;
+    }
+
+    private static void boldSelectedText(JTextArea textArea) {
+        styl doc = textArea.getStyledDocument();
+        int selectionStart = textArea.getSelectionStart();
+        int selectionEnd = textArea.getSelectionEnd();
+
+        if (selectionStart != selectionEnd) {
+            chara element = doc.getCharacterElement(selectionStart);
+            AttributeSet as = element.getAttributes();
+
+            StyleContext sc = StyleContext.getDefaultStyleContext();
+            Style boldStyle = sc.addStyle("Bold", null);
+            StyleConstants.setBold(boldStyle, true);
+
+            if (StyleConstants.isBold(as)) {
+                doc.setCharacterAttributes(selectionStart, selectionEnd - selectionStart, boldStyle, false);
+            } else {
+                doc.setCharacterAttributes(selectionStart, selectionEnd - selectionStart, boldStyle, true);
+            }
+        }
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -276,15 +307,15 @@ public class textEditor extends JFrame implements ActionListener {
         if (e.getSource() == Redo) {
             textState.redo();
         }
-        if (e.getSource() == bold) {
-            countofBold++;
-            Font currentFont = textArea.getFont();
-            if (countofBold % 2 == 0) {
-                textArea.setFont(currentFont.deriveFont(Font.BOLD));
-            } else {
-                textArea.setFont(currentFont.deriveFont(Font.PLAIN));
-            }
-        }
+        // if (e.getSource() == bold) {
+        // countofBold++;
+        // Font currentFont = textArea.getFont();
+        // if (countofBold % 2 == 0) {
+        // textArea.setFont(currentFont.deriveFont(Font.BOLD));
+        // } else {
+        // textArea.setFont(currentFont.deriveFont(Font.PLAIN));
+        // }
+        // }
         if (e.getSource() == italic) {
             countofItalic++;
             Font currentFont = textArea.getFont();
@@ -293,7 +324,27 @@ public class textEditor extends JFrame implements ActionListener {
             } else {
                 textArea.setFont(currentFont.deriveFont(Font.PLAIN));
             }
+
         }
+        if (e.getSource() == bold && textArea.getSelectedText() != null) {
+            countofBold++;
+            Font currentFont = textArea.getFont();
+
+            // Get selected text
+            String selectedText = textArea.getSelectedText();
+
+            // Check if the selected text is already bold
+            boolean isBold = (currentFont.getStyle() & Font.BOLD) != 0;
+
+            if (countofBold % 2 == 0 && !isBold) {
+                // If countofBold is even and the selected text is not bold, make it bold
+                textArea.replaceSelection("<html><b>" + selectedText + "</b></html>");
+            } else if (countofBold % 2 != 0 && isBold) {
+                // If countofBold is odd and the selected text is bold, make it plain
+                textArea.replaceSelection(selectedText);
+            }
+        }
+
     }
 
     public static void main(String[] args) {

@@ -7,11 +7,14 @@ import java.io.*;
 import java.util.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 import javax.swing.undo.UndoManager;
-
+import javax.swing.text.*;
+import javax.print.attribute.AttributeSet;
 import org.w3c.dom.Text;
 
 public class textEditor extends JFrame implements ActionListener {
@@ -20,8 +23,8 @@ public class textEditor extends JFrame implements ActionListener {
     private static final Dimension SCROLL_BOUNDS = new Dimension(900, 750);
     private static final int DEFAULT_FONT_SIZE = 30;
 
-    JTextArea textArea;
-    JTextArea selectedArea;
+    // JTextArea PaneArea;
+    JTextPane PaneArea;
 
     JButton fontcolor;
     JButton bold;
@@ -103,7 +106,7 @@ public class textEditor extends JFrame implements ActionListener {
         setUpFontSize();
         setUpFontStyle();
 
-        addScrollBar(textArea);
+        addScrollBar(PaneArea);
         this.setVisible(true);
 
         // public met update() {
@@ -126,11 +129,20 @@ public class textEditor extends JFrame implements ActionListener {
     }
 
     private void setUpTextArea() {
-        textArea = new JTextArea();
-        textArea.setWrapStyleWord(true);
-        textArea.setLineWrap(true);
-        textArea.setFont(new Font("Arial", Font.PLAIN, 30));
-        textArea.addMouseListener(new MouseListener() {
+        PaneArea = new JTextPane();
+        PaneArea.setFont(new Font("Arial", Font.PLAIN, 30));
+
+        // Enable word wrap
+        StyledDocument doc = PaneArea.getStyledDocument();
+        SimpleAttributeSet attrs = new SimpleAttributeSet();
+        StyleConstants.setLineSpacing(attrs, 0.5f);
+        doc.setParagraphAttributes(0, doc.getLength(), attrs, false);
+
+        JScrollPane scrollPane = new JScrollPane(PaneArea);
+        scrollPane.setPreferredSize(new Dimension(400, 300));
+        // Add the scroll pane to your container or panel
+        // container.add(scrollPane);
+        PaneArea.addMouseListener(new MouseListener() {
             // Not necessary
             public void mouseClicked(MouseEvent e) {
             }
@@ -145,15 +157,15 @@ public class textEditor extends JFrame implements ActionListener {
             }
 
             public void mouseReleased(MouseEvent e) {
-                if (textArea.getSelectedText() != null) { // See if they selected something
-                    String s = textArea.getSelectedText();
+                if (PaneArea.getSelectedText() != null) { // See if they selected something
+                    String s = PaneArea.getSelectedText();
                 }
             }
         });
     }
 
-    private void addScrollBar(JTextArea textArea) {
-        JScrollPane Scroll = new JScrollPane(textArea);
+    private void addScrollBar(JTextPane PaneArea) {
+        JScrollPane Scroll = new JScrollPane(PaneArea);
         Scroll.setPreferredSize(new Dimension(SCROLL_BOUNDS));
         Scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         this.add(Scroll);
@@ -168,7 +180,7 @@ public class textEditor extends JFrame implements ActionListener {
 
         fontSpinner.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
-                textArea.setFont(new Font(textArea.getFont().getFamily(), Font.PLAIN, (int) fontSpinner.getValue()));
+                PaneArea.setFont(new Font(PaneArea.getFont().getFamily(), Font.PLAIN, (int) fontSpinner.getValue()));
             }
         });
         this.add(fontText);
@@ -209,36 +221,15 @@ public class textEditor extends JFrame implements ActionListener {
         return button;
     }
 
-    private static void boldSelectedText(JTextArea textArea) {
-        styl doc = textArea.getStyledDocument();
-        int selectionStart = textArea.getSelectionStart();
-        int selectionEnd = textArea.getSelectionEnd();
-
-        if (selectionStart != selectionEnd) {
-            chara element = doc.getCharacterElement(selectionStart);
-            AttributeSet as = element.getAttributes();
-
-            StyleContext sc = StyleContext.getDefaultStyleContext();
-            Style boldStyle = sc.addStyle("Bold", null);
-            StyleConstants.setBold(boldStyle, true);
-
-            if (StyleConstants.isBold(as)) {
-                doc.setCharacterAttributes(selectionStart, selectionEnd - selectionStart, boldStyle, false);
-            } else {
-                doc.setCharacterAttributes(selectionStart, selectionEnd - selectionStart, boldStyle, true);
-            }
-        }
-    }
-
     public void actionPerformed(ActionEvent e) {
 
         if (e.getSource() == fontcolor) {
             Color color = JColorChooser.showDialog(null, "Choose a Color", Color.BLACK);
-            textArea.setForeground(color);
+            PaneArea.setForeground(color);
         }
         if (e.getSource() == fontList) {
-            Font font1 = new Font((String) fontList.getSelectedItem(), Font.PLAIN, textArea.getFont().getSize());
-            textArea.setFont(font1);
+            Font font1 = new Font((String) fontList.getSelectedItem(), Font.PLAIN, PaneArea.getFont().getSize());
+            PaneArea.setFont(font1);
         }
         if (e.getSource() == Open) {
             JFileChooser fileChooser = new JFileChooser();
@@ -255,14 +246,20 @@ public class textEditor extends JFrame implements ActionListener {
                     if (file.isFile()) {
                         while (infile.hasNextLine()) {
                             String line = infile.nextLine() + "\n";
-                            textArea.append(line);
-
+                            PaneArea.getDocument().insertString(PaneArea.getDocument().getLength(), line, null);
                         }
                     }
                 } catch (FileNotFoundException e1) {
                     e1.printStackTrace();
+                } catch (IOException e2) {
+                    e2.printStackTrace();
+                } catch (BadLocationException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
                 } finally {
-                    infile.close();
+                    if (infile != null) {
+                        infile.close();
+                    }
                 }
             }
         }
@@ -283,7 +280,7 @@ public class textEditor extends JFrame implements ActionListener {
 
                 try {
                     outfile = new PrintWriter(file);
-                    outfile.println(textArea.getText());
+                    outfile.println(PaneArea.getText());
 
                 } catch (FileNotFoundException e1) {
                     e1.printStackTrace();
@@ -318,30 +315,81 @@ public class textEditor extends JFrame implements ActionListener {
         // }
         if (e.getSource() == italic) {
             countofItalic++;
-            Font currentFont = textArea.getFont();
-            if (countofItalic % 2 == 0) {
-                textArea.setFont(currentFont.deriveFont(Font.ITALIC));
-            } else {
-                textArea.setFont(currentFont.deriveFont(Font.PLAIN));
+            // Font currentFont = PaneArea.getFont();
+            // String s = PaneArea.getSelectedText();
+
+            // // Get selected text
+            // String selectedText = PaneArea.getSelectedText();
+            // StyledDocument doc = PaneArea.getStyledDocument();
+            // int selectionStart = PaneArea.getSelectionStart();
+            // int selectionEnd = PaneArea.getSelectionEnd();
+            // String bold = selectedText.toLowerCase();
+
+            // // Check if the selected text is already bold
+            // boolean isBold = (currentFont.getStyle() & Font.BOLD) != 0;
+
+            String selectedText = PaneArea.getSelectedText();
+
+            // Check if there is selected text and it's not empty
+            if (selectedText != null) {
+                StyledDocument doc = PaneArea.getStyledDocument();
+                int selectionStart = PaneArea.getSelectionStart();
+                int selectionEnd = PaneArea.getSelectionEnd();
+                // Create a simple attribute set for styling
+                SimpleAttributeSet italicAttrs = new SimpleAttributeSet();
+                StyleConstants.setItalic(italicAttrs, true);
+                SimpleAttributeSet Plain = new SimpleAttributeSet();
+                StyleConstants.setItalic(Plain, false);
+
+                // Apply the bold attribute to the selected text
+                if (countofItalic % 2 == 0) {
+                    doc.setCharacterAttributes(selectionStart, selectionEnd - selectionStart, italicAttrs, false);
+                } else {
+                    doc.setCharacterAttributes(selectionStart, selectionEnd - selectionStart,
+                            Plain, true);
+
+                }
+
             }
 
         }
-        if (e.getSource() == bold && textArea.getSelectedText() != null) {
+        if (e.getSource() == bold && PaneArea.getSelectedText() != null) {
             countofBold++;
-            Font currentFont = textArea.getFont();
+            // Font currentFont = PaneArea.getFont();
+            // String s = PaneArea.getSelectedText();
 
-            // Get selected text
-            String selectedText = textArea.getSelectedText();
+            // // Get selected text
+            // String selectedText = PaneArea.getSelectedText();
+            // StyledDocument doc = PaneArea.getStyledDocument();
+            // int selectionStart = PaneArea.getSelectionStart();
+            // int selectionEnd = PaneArea.getSelectionEnd();
+            // String bold = selectedText.toLowerCase();
 
-            // Check if the selected text is already bold
-            boolean isBold = (currentFont.getStyle() & Font.BOLD) != 0;
+            // // Check if the selected text is already bold
+            // boolean isBold = (currentFont.getStyle() & Font.BOLD) != 0;
 
-            if (countofBold % 2 == 0 && !isBold) {
-                // If countofBold is even and the selected text is not bold, make it bold
-                textArea.replaceSelection("<html><b>" + selectedText + "</b></html>");
-            } else if (countofBold % 2 != 0 && isBold) {
-                // If countofBold is odd and the selected text is bold, make it plain
-                textArea.replaceSelection(selectedText);
+            String selectedText = PaneArea.getSelectedText();
+
+            // Check if there is selected text and it's not empty
+            if (selectedText != null) {
+                StyledDocument doc = PaneArea.getStyledDocument();
+                int selectionStart = PaneArea.getSelectionStart();
+                int selectionEnd = PaneArea.getSelectionEnd();
+                // Create a simple attribute set for styling
+                SimpleAttributeSet boldAttrs = new SimpleAttributeSet();
+                StyleConstants.setBold(boldAttrs, true);
+                SimpleAttributeSet Plain = new SimpleAttributeSet();
+                StyleConstants.setBold(Plain, false);
+
+                // Apply the bold attribute to the selected text
+                if (countofBold % 2 == 0) {
+                    doc.setCharacterAttributes(selectionStart, selectionEnd - selectionStart, boldAttrs, false);
+                } else {
+                    doc.setCharacterAttributes(selectionStart, selectionEnd - selectionStart,
+                            Plain, true);
+
+                }
+
             }
         }
 

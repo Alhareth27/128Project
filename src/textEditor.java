@@ -10,6 +10,7 @@ import javax.swing.filechooser.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import javax.swing.undo.UndoManager;
@@ -32,6 +33,7 @@ public class textEditor extends JFrame implements ActionListener {
     JComboBox<String> fontList;
     JMenuBar MenuBar;
     JMenuItem Open;
+    JMenuItem InsertImage;
     JMenuItem Exit;
     JMenuItem Save;
     JMenuItem Undo;
@@ -41,12 +43,13 @@ public class textEditor extends JFrame implements ActionListener {
     public ArrayDeque<String> stack;
     public UndoManager undoManager;
     boolean actionIsPerformed = false;
+    JMenu insertMenu;
     // public TextVersions TextState;
     public SizedStack<String> undoStack;
     KeyStroke undoKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_Z,
             Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
 
-    textEditor() {
+    textEditor() throws BadLocationException {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setTitle("Text Editor");
         this.setSize(WINDOW_SIZE);
@@ -155,6 +158,7 @@ public class textEditor extends JFrame implements ActionListener {
         // }
         // },
         // 5000);
+
     }
 
     public JTextPane setUpTextArea() {
@@ -229,11 +233,14 @@ public class textEditor extends JFrame implements ActionListener {
     public void setUpMenuBar() {
         MenuBar = new JMenuBar();
         JMenu menu = new JMenu("File");
+        insertMenu = new JMenu("Insert");
+        InsertImage = setUpMenuItem("Image", insertMenu);
         Open = setUpMenuItem("Open", menu);
         Save = setUpMenuItem("Save", menu);
         Exit = setUpMenuItem("Exit", menu);
         Undo = setUpMenuItem("Undo", menu);
         MenuBar.add(menu);
+        MenuBar.add(insertMenu);
         this.setJMenuBar(MenuBar);
         Undo.setAccelerator(undoKeyStroke);
     }
@@ -427,12 +434,14 @@ public class textEditor extends JFrame implements ActionListener {
                 }
 
             }
-            // TextState.saveState();
+        }
+        if (e.getSource() == InsertImage) {
+
         }
 
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws BadLocationException {
         new textEditor();
     }
 

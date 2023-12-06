@@ -45,6 +45,8 @@ public class textEditor extends JFrame implements ActionListener {
     boolean actionIsPerformed = false;
     // public TextVersions TextState;
     public SizedStack<String> undoStack;
+    public SizedStack<String> redoStack;
+
     KeyStroke undoKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_Z,
             Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
     private FormattingOptions format;   
@@ -129,6 +131,7 @@ public class textEditor extends JFrame implements ActionListener {
         // }
         // TextState = new TextVersions(this);
         undoStack = new SizedStack<>(20);
+        redoStack = new SizedStack<>(20);
 
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
         Runnable codeSnippet = () -> {
@@ -146,7 +149,7 @@ public class textEditor extends JFrame implements ActionListener {
         };
 
         // Schedule the code snippet to run every 5 seconds
-        executor.scheduleAtFixedRate(codeSnippet, 0, 1, TimeUnit.SECONDS);
+        executor.scheduleAtFixedRate(codeSnippet, 0, 3, TimeUnit.SECONDS);
 
         // new java.util.Timer().schedule(
         // new java.util.TimerTask() {
@@ -237,9 +240,12 @@ public class textEditor extends JFrame implements ActionListener {
         Save = setUpMenuItem("Save", menu);
         Exit = setUpMenuItem("Exit", menu);
         Undo = setUpMenuItem("Undo", menu);
+        Redo = setUpMenuItem("Redo", menu);
+
         MenuBar.add(menu);
         this.setJMenuBar(MenuBar);
         Undo.setAccelerator(undoKeyStroke);
+        Redo.setAccelerator(redoKeyStroke);
     }
 
     public JMenuItem setUpMenuItem(String text, JMenu menu) {
@@ -260,10 +266,20 @@ public class textEditor extends JFrame implements ActionListener {
 
         if (e.getSource() == fontcolor) {
             Color color = JColorChooser.showDialog(null, "Choose a Color", Color.BLACK);
-            PaneArea.setForeground(color);
-            // TextState.saveState();
+            if (color != null) {
+                StyledDocument doc = PaneArea.getStyledDocument();
+                int selectionStart = PaneArea.getSelectionStart();
+                int selectionEnd = PaneArea.getSelectionEnd();
 
+                if (selectionStart != selectionEnd) { // Check if text is selected
+                    SimpleAttributeSet attrs = new SimpleAttributeSet();
+                    StyleConstants.setForeground(attrs, color);
+
+                    doc.setCharacterAttributes(selectionStart, selectionEnd - selectionStart, attrs, false);
+                }
+            }
         }
+
         if (e.getSource() == fontList) {
             Font font1 = new Font((String) fontList.getSelectedItem(), Font.PLAIN, PaneArea.getFont().getSize());
             PaneArea.setFont(font1);
@@ -342,7 +358,11 @@ public class textEditor extends JFrame implements ActionListener {
         // }
         if (e.getSource() == Undo) {
             undoStack.pop();
+            redoStack.push(undoStack.pop());
             PaneArea.setText(undoStack.peek());
+        }
+        if (e.getSource() == Redo) {
+            PaneArea.setText(redoStack.peek());
         }
         // if (e.getSource() == bold) {
         // countofBold++;
@@ -432,7 +452,6 @@ public class textEditor extends JFrame implements ActionListener {
                 }
 
             }
-            // TextState.saveState();
         }
 
     }

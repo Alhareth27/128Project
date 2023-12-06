@@ -128,6 +128,7 @@ public class textEditor extends JFrame implements ActionListener {
     public void setUpTextArea() {
         PaneArea = new JTextPane();
         PaneArea.setFont(new Font("Arial", Font.PLAIN, 30));
+        //
 
         // Enable word wrap
         StyledDocument doc = PaneArea.getStyledDocument();

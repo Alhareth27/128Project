@@ -2,33 +2,25 @@ import javax.swing.*;
 import java.util.Stack;
 
 public class TextVersions {
-    private JTextArea textArea;
-    private Stack<String> undoStack;
-    private Stack<String> redoStack;
 
-    public TextVersions(JTextArea textArea) {
-        this.textArea = textArea;
-        this.undoStack = new Stack<>();
-        this.redoStack = new Stack<>();
+    // private Stack<> undoStack;
+    private JTextPane paneArea;
+
+    public TextVersions(textEditor editor) {
+        this.paneArea = editor.getPaneArea();
+        // this.undoStack = new Stack<>();
         saveState();
     }
 
     public void saveState() {
-        undoStack.push(textArea.getText());
-        redoStack.clear();
+        TextWithStyle textWithStyle = TextWithStyle.fromJTextPane(paneArea);
+        // undoStack.push(textWithStyle);
     }
 
-    public void undo() {
-        if (!undoStack.isEmpty()) {
-            redoStack.push(textArea.getText());
-            textArea.setText(undoStack.pop());
-        }
-    }
-
-    public void redo() {
-        if (!redoStack.isEmpty()) {
-            undoStack.push(textArea.getText());
-            textArea.setText(redoStack.pop());
-        }
-    }
+    // public void undo() {
+    // if (!undoStack.isEmpty()) {
+    // TextWithStyle textWithStyle = undoStack.pop();
+    // textWithStyle.applyToJTextPane(paneArea);
+    // }
+    // }
 }

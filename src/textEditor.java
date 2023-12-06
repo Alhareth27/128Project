@@ -3,14 +3,19 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.time.chrono.JapaneseDate;
 import java.util.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.*;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import javax.swing.undo.UndoManager;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class textEditor extends JFrame implements ActionListener {
 
@@ -36,7 +41,10 @@ public class textEditor extends JFrame implements ActionListener {
     public ArrayDeque<String> stack;
     public UndoManager undoManager;
     boolean actionIsPerformed = false;
-    public TextVersions TextState;
+    // public TextVersions TextState;
+    public SizedStack<String> undoStack;
+    KeyStroke undoKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_Z,
+            Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
 
     textEditor() {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -47,9 +55,6 @@ public class textEditor extends JFrame implements ActionListener {
         // Container contentPane = this.getContentPane();
         // Container contentPane = getContentPane();
 
-        // KeyStroke undoKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_Z,
-        // Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-
         setUpTextArea();
 
         // undoManager = new UndoManager();
@@ -59,15 +64,11 @@ public class textEditor extends JFrame implements ActionListener {
         // Action undoAction = new AbstractAction() {
         // @Override
         // public void actionPerformed(ActionEvent e) {
-        // if (undoManager.canUndo()) {
-        // undoManager.undo();
+        // if (e.getSource() == Undo) {
+
         // }
         // }
         // };
-        // getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(undoKeyStroke,
-        // "undoKeystroke");
-        // getRootPane().getActionMap().put("undoKeystroke", undoAction);
-        // textState = new TextVersions(textArea);
 
         // stack = new ArrayDeque<String>();
         // textArea.getDocument().addDocumentListener(new DocumentListener() {
@@ -122,10 +123,41 @@ public class textEditor extends JFrame implements ActionListener {
         // } else {
         // textArea.setText(".");
         // }
-        TextState = new TextVersions(this);
+        // TextState = new TextVersions(this);
+        undoStack = new SizedStack<>(20);
+
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+        Runnable codeSnippet = () -> {
+            String currentText = PaneArea.getText();
+
+            // If the stack is empty or the top element is different from the current text,
+            // push the current text
+            if (undoStack.isEmpty() || !undoStack.peek().equals(currentText)) {
+                undoStack.push(currentText);
+            }
+
+            System.out.println("=================");
+            System.out.println(Arrays.toString(undoStack.toArray()));
+            System.out.println("=================");
+        };
+
+        // Schedule the code snippet to run every 5 seconds
+        executor.scheduleAtFixedRate(codeSnippet, 0, 1, TimeUnit.SECONDS);
+
+        // new java.util.Timer().schedule(
+        // new java.util.TimerTask() {
+        // @Override
+        // public void run() {
+        // undoStack.push("hi");
+        // System.out.println("-----UNDO STACK BITCH -----");
+        // System.out.println(Arrays.toString(undoStack.toArray()));
+        // System.out.println("-----UNDO STACK BITCH -----");
+        // }
+        // },
+        // 5000);
     }
 
-    public void setUpTextArea() {
+    public JTextPane setUpTextArea() {
         PaneArea = new JTextPane();
         PaneArea.setFont(new Font("Arial", Font.PLAIN, 30));
         //
@@ -160,6 +192,7 @@ public class textEditor extends JFrame implements ActionListener {
                 }
             }
         });
+        return PaneArea;
     }
 
     public void addScrollBar(JTextPane PaneArea) {
@@ -202,6 +235,7 @@ public class textEditor extends JFrame implements ActionListener {
         Undo = setUpMenuItem("Undo", menu);
         MenuBar.add(menu);
         this.setJMenuBar(MenuBar);
+        Undo.setAccelerator(undoKeyStroke);
     }
 
     public JMenuItem setUpMenuItem(String text, JMenu menu) {
@@ -223,13 +257,13 @@ public class textEditor extends JFrame implements ActionListener {
         if (e.getSource() == fontcolor) {
             Color color = JColorChooser.showDialog(null, "Choose a Color", Color.BLACK);
             PaneArea.setForeground(color);
-            TextState.saveState();
+            // TextState.saveState();
 
         }
         if (e.getSource() == fontList) {
             Font font1 = new Font((String) fontList.getSelectedItem(), Font.PLAIN, PaneArea.getFont().getSize());
             PaneArea.setFont(font1);
-            TextState.saveState();
+            // TextState.saveState();
 
         }
         if (e.getSource() == Open) {
@@ -302,7 +336,8 @@ public class textEditor extends JFrame implements ActionListener {
         // }
         // }
         if (e.getSource() == Undo) {
-            TextState.undo();
+            undoStack.pop();
+            PaneArea.setText(undoStack.peek());
         }
         // if (e.getSource() == bold) {
         // countofBold++;
@@ -351,7 +386,7 @@ public class textEditor extends JFrame implements ActionListener {
                 }
 
             }
-            TextState.saveState();
+            // TextState.saveState();
 
         }
         if (e.getSource() == bold && PaneArea.getSelectedText() != null) {
@@ -392,7 +427,7 @@ public class textEditor extends JFrame implements ActionListener {
                 }
 
             }
-            TextState.saveState();
+            // TextState.saveState();
         }
 
     }

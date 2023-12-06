@@ -3,24 +3,24 @@ import java.util.Stack;
 
 public class TextVersions {
 
-    private Stack<> undoStack;
+    // private Stack<> undoStack;
     private JTextPane paneArea;
 
     public TextVersions(textEditor editor) {
         this.paneArea = editor.getPaneArea();
-        this.undoStack = new Stack<>();
+        // this.undoStack = new Stack<>();
         saveState();
     }
 
     public void saveState() {
         TextWithStyle textWithStyle = TextWithStyle.fromJTextPane(paneArea);
-        undoStack.push(textWithStyle);
+        // undoStack.push(textWithStyle);
     }
 
-    public void undo() {
-        if (!undoStack.isEmpty()) {
-            TextWithStyle textWithStyle = undoStack.pop();
-            textWithStyle.applyToJTextPane(paneArea);
-        }
-    }
+    // public void undo() {
+    // if (!undoStack.isEmpty()) {
+    // TextWithStyle textWithStyle = undoStack.pop();
+    // textWithStyle.applyToJTextPane(paneArea);
+    // }
+    // }
 }

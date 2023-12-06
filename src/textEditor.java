@@ -1,5 +1,4 @@
-import javax.lang.model.element.Element;
-import javax.print.attribute.AttributeSet;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -10,12 +9,8 @@ import javax.swing.filechooser.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 import javax.swing.undo.UndoManager;
-import javax.swing.text.*;
-import javax.print.attribute.AttributeSet;
-import org.w3c.dom.Text;
 
 public class textEditor extends JFrame implements ActionListener {
 
@@ -40,8 +35,8 @@ public class textEditor extends JFrame implements ActionListener {
     int countofItalic = 1;
     public ArrayDeque<String> stack;
     public UndoManager undoManager;
-    public TextVersions textState;
     boolean actionIsPerformed = false;
+    public TextVersions TextState;
 
     textEditor() {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -52,8 +47,8 @@ public class textEditor extends JFrame implements ActionListener {
         // Container contentPane = this.getContentPane();
         // Container contentPane = getContentPane();
 
-        KeyStroke undoKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_Z,
-                Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+        // KeyStroke undoKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_Z,
+        // Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
 
         setUpTextArea();
 
@@ -127,9 +122,10 @@ public class textEditor extends JFrame implements ActionListener {
         // } else {
         // textArea.setText(".");
         // }
+        TextState = new TextVersions(this);
     }
 
-    private void setUpTextArea() {
+    public void setUpTextArea() {
         PaneArea = new JTextPane();
         PaneArea.setFont(new Font("Arial", Font.PLAIN, 30));
 
@@ -165,14 +161,14 @@ public class textEditor extends JFrame implements ActionListener {
         });
     }
 
-    private void addScrollBar(JTextPane PaneArea) {
+    public void addScrollBar(JTextPane PaneArea) {
         JScrollPane Scroll = new JScrollPane(PaneArea);
         Scroll.setPreferredSize(new Dimension(SCROLL_BOUNDS));
         Scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         this.add(Scroll);
     }
 
-    private void setUpFontSize() {
+    public void setUpFontSize() {
         JLabel fontText = new JLabel("Font Size: ");
         JSpinner fontSpinner = new JSpinner();
         fontSpinner.setPreferredSize(new Dimension(50, 50));
@@ -188,7 +184,7 @@ public class textEditor extends JFrame implements ActionListener {
         this.add(fontSpinner);
     }
 
-    private void setUpFontStyle() {
+    public void setUpFontStyle() {
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         String[] fonts = ge.getAvailableFontFamilyNames();
         fontList = new JComboBox<String>(fonts);
@@ -196,26 +192,25 @@ public class textEditor extends JFrame implements ActionListener {
         this.add(fontList);
     }
 
-    private void setUpMenuBar() {
+    public void setUpMenuBar() {
         MenuBar = new JMenuBar();
         JMenu menu = new JMenu("File");
         Open = setUpMenuItem("Open", menu);
         Save = setUpMenuItem("Save", menu);
         Exit = setUpMenuItem("Exit", menu);
         Undo = setUpMenuItem("Undo", menu);
-        Redo = setUpMenuItem("Redo", menu);
         MenuBar.add(menu);
         this.setJMenuBar(MenuBar);
     }
 
-    private JMenuItem setUpMenuItem(String text, JMenu menu) {
+    public JMenuItem setUpMenuItem(String text, JMenu menu) {
         JMenuItem option = new JMenuItem(text);
         option.addActionListener(this);
         menu.add(option);
         return option;
     }
 
-    private JButton setUpButton(String text) {
+    public JButton setUpButton(String text) {
         JButton button = new JButton(text);
         button.addActionListener(this);
         this.add(button);
@@ -227,10 +222,14 @@ public class textEditor extends JFrame implements ActionListener {
         if (e.getSource() == fontcolor) {
             Color color = JColorChooser.showDialog(null, "Choose a Color", Color.BLACK);
             PaneArea.setForeground(color);
+            TextState.saveState();
+
         }
         if (e.getSource() == fontList) {
             Font font1 = new Font((String) fontList.getSelectedItem(), Font.PLAIN, PaneArea.getFont().getSize());
             PaneArea.setFont(font1);
+            TextState.saveState();
+
         }
         if (e.getSource() == Open) {
             JFileChooser fileChooser = new JFileChooser();
@@ -266,6 +265,7 @@ public class textEditor extends JFrame implements ActionListener {
         }
         if (e.getSource() == Exit) {
             System.exit(ABORT);
+
         }
         if (e.getSource() == Save) {
             JFileChooser fileChooser = new JFileChooser();
@@ -289,6 +289,7 @@ public class textEditor extends JFrame implements ActionListener {
                     outfile.close();
                 }
             }
+
         }
         // }
         // if (e.getSource() == Undo) {
@@ -300,7 +301,7 @@ public class textEditor extends JFrame implements ActionListener {
         // }
         // }
         if (e.getSource() == Undo) {
-            textState.undo();
+            TextState.undo();
         }
         // if (e.getSource() == bold) {
         // countofBold++;
@@ -349,6 +350,7 @@ public class textEditor extends JFrame implements ActionListener {
                 }
 
             }
+            TextState.saveState();
 
         }
         if (e.getSource() == bold && PaneArea.getSelectedText() != null) {
@@ -389,11 +391,16 @@ public class textEditor extends JFrame implements ActionListener {
                 }
 
             }
+            TextState.saveState();
         }
 
     }
 
     public static void main(String[] args) {
         new textEditor();
+    }
+
+    public JTextPane getPaneArea() {
+        return PaneArea;
     }
 }

@@ -3,12 +3,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.time.chrono.JapaneseDate;
 import java.util.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.*;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
@@ -63,7 +61,7 @@ public class textEditor extends JFrame implements ActionListener {
         // Container contentPane = getContentPane();
 
         setUpTextArea();
-        format = new FormattingOptions(textPane);
+        format = new FormattingOptions(PaneArea);
 
         // undoManager = new UndoManager();
         // textPane.getDocument().addUndoableEditListener(e -> {
@@ -182,23 +180,14 @@ public class textEditor extends JFrame implements ActionListener {
         scrollPane.setPreferredSize(new Dimension(400, 300));
         // Add the scroll pane to your container or panel
         // container.add(scrollPane);
-        PaneArea.addMouseListener(new MouseListener() {
-            // Not necessary
-            public void mouseClicked(MouseEvent e) {
-            }
+        PaneArea.addKeyListener(new KeyListener() {
+            //Unnecessary methods
+            public void keyPressed(KeyEvent e) {}
+            public void keyReleased(KeyEvent e) {}
 
-            public void mousePressed(MouseEvent e) {
-            }
-
-            public void mouseEntered(MouseEvent e) {
-            }
-
-            public void mouseExited(MouseEvent e) {
-            }
-
-            public void mouseReleased(MouseEvent e) {
-                if (PaneArea.getSelectedText() != null) { // See if they selected something
-                    String s = PaneArea.getSelectedText();
+            public void keyTyped(KeyEvent e) { 
+                if (redoStack.isEmpty()) {
+                    redoStack.clear(); //Newly typed keys will conflict with stored redos
                 }
             }
         });
@@ -248,7 +237,7 @@ public class textEditor extends JFrame implements ActionListener {
         MenuBar.add(menu);
         this.setJMenuBar(MenuBar);
         Undo.setAccelerator(undoKeyStroke);
-        Redo.setAccelerator(redoKeyStroke);
+        // Redo.setAccelerator(redoKeyStroke);
     }
 
     public JMenuItem setUpMenuItem(String text, JMenu menu) {
@@ -266,165 +255,96 @@ public class textEditor extends JFrame implements ActionListener {
     }
 
     public void actionPerformed(ActionEvent e) {
+        // Check if there is selected text and it's not empty
+        if (PaneArea.getSelectedText() != null) {
 
-        if (e.getSource() == fontcolor) {
-            Color color = JColorChooser.showDialog(null, "Choose a Color", Color.BLACK);
-            if (color != null) {
-                StyledDocument doc = PaneArea.getStyledDocument();
-                int selectionStart = PaneArea.getSelectionStart();
-                int selectionEnd = PaneArea.getSelectionEnd();
-
-                if (selectionStart != selectionEnd) { // Check if text is selected
-                    SimpleAttributeSet attrs = new SimpleAttributeSet();
-                    StyleConstants.setForeground(attrs, color);
-
-                    doc.setCharacterAttributes(selectionStart, selectionEnd - selectionStart, attrs, false);
-                }
+            if (e.getSource() == fontcolor) {
+                Color color = JColorChooser.showDialog(null, "Choose a Color", Color.BLACK);
+                format.setTextColor(color);
             }
-        }
-
-        if (e.getSource() == fontList) {
-            Font font1 = new Font((String) fontList.getSelectedItem(), Font.PLAIN, PaneArea.getFont().getSize());
-            PaneArea.setFont(font1);
-            // TextState.saveState();
-
-        }
-        else if (e.getSource() == Open) {
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setCurrentDirectory(new File("."));
-            FileNameExtensionFilter filter = new FileNameExtensionFilter("text Files", "txt");
-            fileChooser.setFileFilter(filter);
-            int response = fileChooser.showOpenDialog(null);
-
-            if (response == JFileChooser.APPROVE_OPTION) {
-                File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
-                Scanner infile = null;
-                try {
-                    infile = new Scanner(file);
-                    if (file.isFile()) {
-                        textPane.setText("");
-                        while (infile.hasNextLine()) {
-                            String line = infile.nextLine() + "\n";
-                            PaneArea.getDocument().insertString(PaneArea.getDocument().getLength(), line, null);
-                        }
+            else if (e.getSource() == fontList) {
+                Font font = new Font((String) fontList.getSelectedItem(), Font.PLAIN, PaneArea.getFont().getSize());
+                format.setFontStyle(font);
+            }
+            else if (e.getSource() == Open) {
+                format.openFile();
+            }
+            else if (e.getSource() == Exit) {
+                System.exit(ABORT);
+    
+            }
+            else if (e.getSource() == Save) {
+                format.saveFile();
+            }
+            // }
+            // if (e.getSource() == Undo) {
+            // Undoevent();
+            // }
+            // if (e.getSource() == Undo) {
+            // if (undoManager.canUndo()) {
+            // undoManager.undo();
+            // }
+            // }
+            else if (e.getSource() == Undo) {
+                String text = undoStack.pop();
+                redoStack.push(text);
+                PaneArea.setText(undoStack.peek());
+            }
+            else if (e.getSource() == Redo) {
+                PaneArea.setText(redoStack.peek());
+            }
+            else if (e.getSource() == AutoCompleteButton) {
+                String text = undoStack.get(undoStack.indexOf(undoStack.lastElement())); // Get the text and remove
+                String[] wordsArray = text.split("\\s+");
+                String[] lastword = new String[1];
+                lastword[0] = wordsArray[wordsArray.length - 1];
+                ArrayList<String> words = AutoComplete.getAutoCompleteSuggestions(lastword);
+                StringBuilder result = new StringBuilder();
+                for (String word : words) {
+                    result.append(word).append("\n"); // Append each word with a newline
+                }
+                Random random = new Random();
+                String[] resultarray = result.toString().split("\n");
+                String suggestion = resultarray[random.nextInt(resultarray.length)];
+                System.out.println("This:" + suggestion);
+    
+                // Append the result to the PaneArea
+                String[] currentText = PaneArea.getText().toString().split(" ");
+                StringBuilder newText = new StringBuilder();
+                for (String c : currentText) {
+                    if (c.equals(lastword[0])) {
+                        newText.append(suggestion).append(" ");
+                    } else {
+                        newText.append(c).append(" ");
                     }
-                } catch (FileNotFoundException e1) {
-                    e1.printStackTrace();
-                } catch (IOException e2) {
-                    e2.printStackTrace();
-                } catch (BadLocationException e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
-                } finally {
-                    if (infile != null) {
-                        infile.close();
-                    }
                 }
+                PaneArea.setText(newText.toString());
             }
-        }
-        else if (e.getSource() == Exit) {
-            System.exit(ABORT);
-
-        }
-        else if (e.getSource() == Save) {
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setCurrentDirectory(new File("."));
-
-            int response = fileChooser.showSaveDialog(null);
-
-            if (response == JFileChooser.APPROVE_OPTION) {
-                File file;
-                PrintWriter outfile = null;
-
-                file = new File(fileChooser.getSelectedFile().getAbsolutePath());
-
-                try {
-                    outfile = new PrintWriter(file);
-                    outfile.println(PaneArea.getText());
-
-                } catch (FileNotFoundException e1) {
-                    e1.printStackTrace();
-                } finally {
-                    outfile.close();
-                }
-            }
-
-        }
-        // }
-        // if (e.getSource() == Undo) {
-        // Undoevent();
-        // }
-        // if (e.getSource() == Undo) {
-        // if (undoManager.canUndo()) {
-        // undoManager.undo();
-        // }
-        // }
-        if (e.getSource() == Undo) {
-            undoStack.pop();
-            redoStack.push(undoStack.pop());
-            PaneArea.setText(undoStack.peek());
-        }
-        if (e.getSource() == Redo) {
-            PaneArea.setText(redoStack.peek());
-        }
-        if (e.getSource() == AutoCompleteButton) {
-            String text = undoStack.get(undoStack.indexOf(undoStack.lastElement())); // Get the text and remove
-            String[] wordsArray = text.split("\\s+");
-            String[] lastword = new String[1];
-            lastword[0] = wordsArray[wordsArray.length - 1];
-            ArrayList<String> words = AutoComplete.getAutoCompleteSuggestions(lastword);
-            StringBuilder result = new StringBuilder();
-            for (String word : words) {
-                result.append(word).append("\n"); // Append each word with a newline
-            }
-            Random random = new Random();
-            String[] resultarray = result.toString().split("\n");
-            String suggestion = resultarray[random.nextInt(resultarray.length)];
-            System.out.println("This:" + suggestion);
-
-            // Append the result to the PaneArea
-            String[] currentText = PaneArea.getText().toString().split(" ");
-            StringBuilder newText = new StringBuilder();
-            for (String c : currentText) {
-                if (c.equals(lastword[0])) {
-                    newText.append(suggestion).append(" ");
-                } else {
-                    newText.append(c).append(" ");
-                }
-            }
-            PaneArea.setText(newText.toString());
-        }
-
-        // if (e.getSource() == bold) {
-        // countofBold++;
-        // Font currentFont = textArea.getFont();
-        // if (countofBold % 2 == 0) {
-        // textArea.setFont(currentFont.deriveFont(Font.BOLD));
-        // } else {
-        // textArea.setFont(currentFont.deriveFont(Font.PLAIN));
-        // }
-        // }
-        if (e.getSource() == italic)
-
-        {
-            countofItalic++;
-            // Font currentFont = PaneArea.getFont();
-            // String s = PaneArea.getSelectedText();
-
-            // // Get selected text
-            // String selectedText = PaneArea.getSelectedText();
-            // StyledDocument doc = PaneArea.getStyledDocument();
-            // int selectionStart = PaneArea.getSelectionStart();
-            // int selectionEnd = PaneArea.getSelectionEnd();
-            // String bold = selectedText.toLowerCase();
-
-            // // Check if the selected text is already bold
-            // boolean isBold = (currentFont.getStyle() & Font.BOLD) != 0;
-
-            String selectedText = PaneArea.getSelectedText();
-
-            // Check if there is selected text and it's not empty
-            if (selectedText != null) {
+    
+            // if (e.getSource() == bold) {
+            // countofBold++;
+            // Font currentFont = textArea.getFont();
+            // if (countofBold % 2 == 0) {
+            // textArea.setFont(currentFont.deriveFont(Font.BOLD));
+            // } else {
+            // textArea.setFont(currentFont.deriveFont(Font.PLAIN));
+            // }
+            // }
+            else if (e.getSource() == italic) {
+                countofItalic++;
+                // Font currentFont = PaneArea.getFont();
+                // String s = PaneArea.getSelectedText();
+    
+                // // Get selected text
+                // String selectedText = PaneArea.getSelectedText();
+                // StyledDocument doc = PaneArea.getStyledDocument();
+                // int selectionStart = PaneArea.getSelectionStart();
+                // int selectionEnd = PaneArea.getSelectionEnd();
+                // String bold = selectedText.toLowerCase();
+    
+                // // Check if the selected text is already bold
+                // boolean isBold = (currentFont.getStyle() & Font.BOLD) != 0;
+    
                 StyledDocument doc = PaneArea.getStyledDocument();
                 int selectionStart = PaneArea.getSelectionStart();
                 int selectionEnd = PaneArea.getSelectionEnd();
@@ -438,34 +358,25 @@ public class textEditor extends JFrame implements ActionListener {
                 if (countofItalic % 2 == 0) {
                     doc.setCharacterAttributes(selectionStart, selectionEnd - selectionStart, italicAttrs, false);
                 } else {
-                    doc.setCharacterAttributes(selectionStart, selectionEnd - selectionStart,
-                            Plain, true);
-
+                    doc.setCharacterAttributes(selectionStart, selectionEnd - selectionStart, Plain, true); 
                 }
-
+                // TextState.saveState();
             }
-            // TextState.saveState();
-
-        }
-        if (e.getSource() == bold && PaneArea.getSelectedText() != null) {
-            countofBold++;
-            // Font currentFont = PaneArea.getFont();
-            // String s = PaneArea.getSelectedText();
-
-            // // Get selected text
-            // String selectedText = PaneArea.getSelectedText();
-            // StyledDocument doc = PaneArea.getStyledDocument();
-            // int selectionStart = PaneArea.getSelectionStart();
-            // int selectionEnd = PaneArea.getSelectionEnd();
-            // String bold = selectedText.toLowerCase();
-
-            // // Check if the selected text is already bold
-            // boolean isBold = (currentFont.getStyle() & Font.BOLD) != 0;
-
-            String selectedText = PaneArea.getSelectedText();
-
-            // Check if there is selected text and it's not empty
-            if (selectedText != null) {
+            else if (e.getSource() == bold) {
+                countofBold++;
+                // Font currentFont = PaneArea.getFont();
+                // String s = PaneArea.getSelectedText();
+    
+                // // Get selected text
+                // String selectedText = PaneArea.getSelectedText();
+                // StyledDocument doc = PaneArea.getStyledDocument();
+                // int selectionStart = PaneArea.getSelectionStart();
+                // int selectionEnd = PaneArea.getSelectionEnd();
+                // String bold = selectedText.toLowerCase();
+    
+                // // Check if the selected text is already bold
+                // boolean isBold = (currentFont.getStyle() & Font.BOLD) != 0;
+    
                 StyledDocument doc = PaneArea.getStyledDocument();
                 int selectionStart = PaneArea.getSelectionStart();
                 int selectionEnd = PaneArea.getSelectionEnd();
@@ -481,12 +392,9 @@ public class textEditor extends JFrame implements ActionListener {
                 } else {
                     doc.setCharacterAttributes(selectionStart, selectionEnd - selectionStart,
                             Plain, true);
-
                 }
-
             }
         }
-
     }
 
     public static void main(String[] args) {

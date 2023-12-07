@@ -4,6 +4,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.Color;
 import javax.swing.text.*;
 import java.awt.Font;
+import java.io.PrintWriter;
 // import java.util.ArrayDeque;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -69,15 +70,36 @@ public class FormattingOptions {
                 }
             } catch (FileNotFoundException e1) {
                 e1.printStackTrace();
-            } catch (IOException e2) {
-                e2.printStackTrace();
             } catch (BadLocationException e1) {
-                // TODO Auto-generated catch block
                 e1.printStackTrace();
             } finally {
                 if (infile != null) {
                     infile.close();
                 }
+            }
+        }
+    }
+
+    public void saveFile() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setCurrentDirectory(new File("."));
+
+        int response = fileChooser.showSaveDialog(null);
+
+        if (response == JFileChooser.APPROVE_OPTION) {
+            File file;
+            PrintWriter outfile = null;
+
+            file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+
+            try {
+                outfile = new PrintWriter(file);
+                outfile.println(textPane.getText());
+
+            } catch (FileNotFoundException e1) {
+                e1.printStackTrace();
+            } finally {
+                outfile.close();
             }
         }
     }

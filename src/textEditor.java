@@ -17,6 +17,7 @@ import javax.swing.undo.UndoManager;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.Random;
 
 public class textEditor extends JFrame implements ActionListener {
 
@@ -29,6 +30,7 @@ public class textEditor extends JFrame implements ActionListener {
 
     JButton fontcolor;
     JButton bold;
+    JButton AutoCompleteButton;
     JButton italic;
     JComboBox<String> fontList;
     JMenuBar MenuBar;
@@ -45,7 +47,7 @@ public class textEditor extends JFrame implements ActionListener {
     boolean actionIsPerformed = false;
     JMenu insertMenu;
     // public TextVersions TextState;
-    public SizedStack<String> undoStack;
+    public static SizedStack<String> undoStack;
     public SizedStack<String> redoStack;
 
     KeyStroke undoKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_Z,
@@ -104,6 +106,7 @@ public class textEditor extends JFrame implements ActionListener {
         // --------------------------------
         setUpMenuBar();
         bold = setUpButton("Bold");
+        AutoCompleteButton = setUpButton("AutoComplete");
         italic = setUpButton("Italics");
         fontcolor = setUpButton("Text Color");
 
@@ -368,6 +371,25 @@ public class textEditor extends JFrame implements ActionListener {
         if (e.getSource() == Redo) {
             PaneArea.setText(redoStack.peek());
         }
+        if (e.getSource() == AutoCompleteButton) {
+            String text = undoStack.get(undoStack.indexOf(undoStack.lastElement())); // Get the text and remove
+            String[] wordsArray = text.split("\\s+");
+            String[] lastword = new String[1];
+            lastword[0] = wordsArray[wordsArray.length - 1];
+            ArrayList<String> words = AutoComplete.getAutoCompleteSuggestions(lastword);
+            StringBuilder result = new StringBuilder();
+            for (String word : words) {
+                result.append(word).append("\n"); // Append each word with a newline
+            }
+            Random random = new Random();
+            String[] resultarray = result.toString().split("\n");
+            String suggestion = resultarray[random.nextInt(resultarray.length)];
+            System.out.println("This:" + suggestion);
+
+            // Append the result to the PaneArea
+            PaneArea.setText(suggestion);
+
+        }
         // if (e.getSource() == bold) {
         // countofBold++;
         // Font currentFont = textArea.getFont();
@@ -467,4 +489,5 @@ public class textEditor extends JFrame implements ActionListener {
     public JTextPane getPaneArea() {
         return PaneArea;
     }
+
 }

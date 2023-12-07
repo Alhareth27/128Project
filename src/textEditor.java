@@ -150,7 +150,7 @@ public class textEditor extends JFrame implements ActionListener {
         };
 
         // Schedule the code snippet to run every 5 seconds
-        executor.scheduleAtFixedRate(codeSnippet, 0, 3, TimeUnit.SECONDS);
+        executor.scheduleAtFixedRate(codeSnippet, 0, 1, TimeUnit.SECONDS);
 
         // new java.util.Timer().schedule(
         // new java.util.TimerTask() {

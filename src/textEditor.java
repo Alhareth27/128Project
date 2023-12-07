@@ -387,7 +387,8 @@ public class textEditor extends JFrame implements ActionListener {
             System.out.println("This:" + suggestion);
 
             // Append the result to the PaneArea
-            PaneArea.setText(suggestion);
+            String currentText = PaneArea.getText().toString(). + suggestion;
+            PaneArea.setText(currentText);
 
         }
         // if (e.getSource() == bold) {

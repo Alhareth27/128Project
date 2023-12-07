@@ -387,10 +387,18 @@ public class textEditor extends JFrame implements ActionListener {
             System.out.println("This:" + suggestion);
 
             // Append the result to the PaneArea
-            String currentText = PaneArea.getText().toString(). + suggestion;
-            PaneArea.setText(currentText);
-
+            String[] currentText = PaneArea.getText().toString().split(" ");
+            StringBuilder newText = new StringBuilder();
+            for (String c : currentText) {
+                if (c.equals(lastword[0])) {
+                    newText.append(suggestion).append(" ");
+                } else {
+                    newText.append(c).append(" ");
+                }
+            }
+            PaneArea.setText(newText.toString());
         }
+
         // if (e.getSource() == bold) {
         // countofBold++;
         // Font currentFont = textArea.getFont();
@@ -400,7 +408,9 @@ public class textEditor extends JFrame implements ActionListener {
         // textArea.setFont(currentFont.deriveFont(Font.PLAIN));
         // }
         // }
-        if (e.getSource() == italic) {
+        if (e.getSource() == italic)
+
+        {
             countofItalic++;
             // Font currentFont = PaneArea.getFont();
             // String s = PaneArea.getSelectedText();

@@ -146,6 +146,7 @@ public class textEditor extends JFrame implements ActionListener {
 
             System.out.println("=================");
             System.out.println(Arrays.toString(undoStack.toArray()));
+            System.out.println(Arrays.toString(redoStack.toArray()));
             System.out.println("=================");
         };
 
@@ -186,7 +187,7 @@ public class textEditor extends JFrame implements ActionListener {
             public void keyReleased(KeyEvent e) {}
 
             public void keyTyped(KeyEvent e) { 
-                if (redoStack.isEmpty()) {
+                if (!redoStack.isEmpty()) {
                     redoStack.clear(); //Newly typed keys will conflict with stored redos
                 }
             }
@@ -266,70 +267,6 @@ public class textEditor extends JFrame implements ActionListener {
                 Font font = new Font((String) fontList.getSelectedItem(), Font.PLAIN, PaneArea.getFont().getSize());
                 format.setFontStyle(font);
             }
-            else if (e.getSource() == Open) {
-                format.openFile();
-            }
-            else if (e.getSource() == Exit) {
-                System.exit(ABORT);
-    
-            }
-            else if (e.getSource() == Save) {
-                format.saveFile();
-            }
-            // }
-            // if (e.getSource() == Undo) {
-            // Undoevent();
-            // }
-            // if (e.getSource() == Undo) {
-            // if (undoManager.canUndo()) {
-            // undoManager.undo();
-            // }
-            // }
-            else if (e.getSource() == Undo) {
-                String text = undoStack.pop();
-                redoStack.push(text);
-                PaneArea.setText(undoStack.peek());
-            }
-            else if (e.getSource() == Redo) {
-                PaneArea.setText(redoStack.peek());
-            }
-            else if (e.getSource() == AutoCompleteButton) {
-                String text = undoStack.get(undoStack.indexOf(undoStack.lastElement())); // Get the text and remove
-                String[] wordsArray = text.split("\\s+");
-                String[] lastword = new String[1];
-                lastword[0] = wordsArray[wordsArray.length - 1];
-                ArrayList<String> words = AutoComplete.getAutoCompleteSuggestions(lastword);
-                StringBuilder result = new StringBuilder();
-                for (String word : words) {
-                    result.append(word).append("\n"); // Append each word with a newline
-                }
-                Random random = new Random();
-                String[] resultarray = result.toString().split("\n");
-                String suggestion = resultarray[random.nextInt(resultarray.length)];
-                System.out.println("This:" + suggestion);
-    
-                // Append the result to the PaneArea
-                String[] currentText = PaneArea.getText().toString().split(" ");
-                StringBuilder newText = new StringBuilder();
-                for (String c : currentText) {
-                    if (c.equals(lastword[0])) {
-                        newText.append(suggestion).append(" ");
-                    } else {
-                        newText.append(c).append(" ");
-                    }
-                }
-                PaneArea.setText(newText.toString());
-            }
-    
-            // if (e.getSource() == bold) {
-            // countofBold++;
-            // Font currentFont = textArea.getFont();
-            // if (countofBold % 2 == 0) {
-            // textArea.setFont(currentFont.deriveFont(Font.BOLD));
-            // } else {
-            // textArea.setFont(currentFont.deriveFont(Font.PLAIN));
-            // }
-            // }
             else if (e.getSource() == italic) {
                 countofItalic++;
                 // Font currentFont = PaneArea.getFont();
@@ -395,6 +332,69 @@ public class textEditor extends JFrame implements ActionListener {
                 }
             }
         }
+        if (e.getSource() == Open) {
+            format.openFile();
+        }
+        else if (e.getSource() == Exit) {
+            System.exit(ABORT);
+        }
+        else if (e.getSource() == Save) {
+            format.saveFile();
+        }
+        // }
+        // if (e.getSource() == Undo) {
+        // Undoevent();
+        // }
+        // if (e.getSource() == Undo) {
+        // if (undoManager.canUndo()) {
+        // undoManager.undo();
+        // }
+        // }
+        else if (e.getSource() == Undo) {
+            String text = undoStack.pop();
+            redoStack.push(text);
+            PaneArea.setText(undoStack.peek());
+        }
+        else if (e.getSource() == Redo) {
+            PaneArea.setText(redoStack.pop());
+        }
+        else if (e.getSource() == AutoCompleteButton) {
+            String text = undoStack.get(undoStack.indexOf(undoStack.lastElement())); // Get the text and remove
+            String[] wordsArray = text.split("\\s+");
+            String[] lastword = new String[1];
+            lastword[0] = wordsArray[wordsArray.length - 1];
+            ArrayList<String> words = AutoComplete.getAutoCompleteSuggestions(lastword);
+            StringBuilder result = new StringBuilder();
+            for (String word : words) {
+                result.append(word).append("\n"); // Append each word with a newline
+            }
+            Random random = new Random();
+            String[] resultarray = result.toString().split("\n");
+            String suggestion = resultarray[random.nextInt(resultarray.length)];
+            System.out.println("This:" + suggestion);
+
+            // Append the result to the PaneArea
+            String[] currentText = PaneArea.getText().toString().split(" ");
+            StringBuilder newText = new StringBuilder();
+            for (String c : currentText) {
+                if (c.equals(lastword[0])) {
+                    newText.append(suggestion).append(" ");
+                } else {
+                    newText.append(c).append(" ");
+                }
+            }
+            PaneArea.setText(newText.toString());
+        }
+
+        // if (e.getSource() == bold) {
+        // countofBold++;
+        // Font currentFont = textArea.getFont();
+        // if (countofBold % 2 == 0) {
+        // textArea.setFont(currentFont.deriveFont(Font.BOLD));
+        // } else {
+        // textArea.setFont(currentFont.deriveFont(Font.PLAIN));
+        // }
+        // }
     }
 
     public static void main(String[] args) {

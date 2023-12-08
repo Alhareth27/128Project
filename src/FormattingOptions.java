@@ -30,23 +30,20 @@ public class FormattingOptions {
         SimpleAttributeSet set = new SimpleAttributeSet();
         set.addAttributes(textPane.getCharacterAttributes());
         StyleConstants.setForeground(set, color);
-        textPane.getStyledDocument().setCharacterAttributes(selectedtext[0], selectedtext[1], set, true);
+        textPane.getStyledDocument().setCharacterAttributes(selectedtext[0], selectedtext[1], set, false);
     }
 
     public void setFontStyle(Font font) {
         int[] selectedtext = getSelectedTextPositon();
-        String text = textPane.getSelectedText();
         SimpleAttributeSet set = new SimpleAttributeSet();
-        set.addAttributes(textPane.getCharacterAttributes());
+        set.addAttributes(textPane.getCharacterAttributes()); 
         StyleConstants.setFontFamily(set, font.getName());
-        
-        try {
-            textPane.getStyledDocument().remove(selectedtext[0], selectedtext[1]);
-            textPane.getStyledDocument().insertString(selectedtext[0], text, set);
-        }
-        catch(BadLocationException e) {
-            e.printStackTrace();
-        }
+        StyledDocument sdoc = (StyledDocument) textPane.getDocument();
+        sdoc.setCharacterAttributes(selectedtext[0], selectedtext[1], set, false);
+    }
+
+    public void setFontSize() {
+
     }
 
     public void openFile() {

@@ -43,7 +43,7 @@ public class AutoComplete {
         PrefixTree tree = new PrefixTree();
 
         // Load dictionary or words from file into the prefix tree
-        File file = getFile("res/dictionary.txt"); // Replace with your dictionary file path
+        File file = getFile("res/Common.txt"); // Replace with your dictionary file path
         try {
             BufferedReader reader = new BufferedReader(new FileReader(file));
             String dictionaryWord;

@@ -8,42 +8,54 @@ import java.io.PrintWriter;
 // import java.util.ArrayDeque;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.Scanner;
 
 public class FormattingOptions {
 
-    // private ArrayDeque<String> undoTextStack;
-    // private ArrayDeque<AttributeSet> undoAttributeStack;
+    private static final int DEFAULT_FONT_SIZE = 30;
     private JTextPane textPane;
 
     public FormattingOptions(JTextPane textPane) {
-        // undoTextStack = new ArrayDeque<String>();
-        // undoAttributeStack = new ArrayDeque<AttributeSet>();
         this.textPane = textPane;
-        pushToUndoStack();
     }
 
     public void setTextColor(Color color) {
-        pushToUndoStack();
-        int[] selectedtext = getSelectedTextPositon();
         SimpleAttributeSet set = new SimpleAttributeSet();
-        set.addAttributes(textPane.getCharacterAttributes());
         StyleConstants.setForeground(set, color);
-        textPane.getStyledDocument().setCharacterAttributes(selectedtext[0], selectedtext[1], set, false);
+        setTextPaneAttributes(set);
+        StyleConstants.setForeground(textPane.getInputAttributes(), Color.BLACK);
     }
 
     public void setFontStyle(Font font) {
-        int[] selectedtext = getSelectedTextPositon();
         SimpleAttributeSet set = new SimpleAttributeSet();
-        set.addAttributes(textPane.getCharacterAttributes()); 
         StyleConstants.setFontFamily(set, font.getName());
-        StyledDocument sdoc = (StyledDocument) textPane.getDocument();
-        sdoc.setCharacterAttributes(selectedtext[0], selectedtext[1], set, false);
+        setTextPaneAttributes(set);
+        StyleConstants.setFontFamily(textPane.getInputAttributes(), "Arial");
     }
 
-    public void setFontSize() {
+    public void setFontSize(int size) {
+        SimpleAttributeSet set = new SimpleAttributeSet();
+        StyleConstants.setFontSize(set, size);
+        setTextPaneAttributes(set);
+        StyleConstants.setFontSize(textPane.getInputAttributes(), DEFAULT_FONT_SIZE);
+    }
 
+    public void setItalic() {
+        SimpleAttributeSet oldSet = new SimpleAttributeSet();
+        SimpleAttributeSet newSet = new SimpleAttributeSet();
+        oldSet.addAttributes(textPane.getCharacterAttributes());
+        boolean italic = StyleConstants.isItalic(oldSet) ? false : true;
+        StyleConstants.setItalic(newSet, italic);
+        setTextPaneAttributes(newSet);
+    }
+
+    public void setBold() {
+        SimpleAttributeSet oldSet = new SimpleAttributeSet();
+        SimpleAttributeSet newSet = new SimpleAttributeSet();
+        oldSet.addAttributes(textPane.getCharacterAttributes());
+        boolean bold = StyleConstants.isBold(oldSet) ? false : true;
+        StyleConstants.setBold(newSet, bold);
+        setTextPaneAttributes(newSet);
     }
 
     public void openFile() {
@@ -100,29 +112,14 @@ public class FormattingOptions {
             }
         }
     }
-
-    public void undo() {
-        // String text = undoTextStack.pop();
-        // textPane.setText(text);
-        // AttributeSet set = undoAttributeStack.pop();
-        // textPane.setCharacterAttributes(set, true);
-    }
     
     /**
-     * Helper method that finds the selected text and returns that text's onset and length.
-     * @param textPane A JTextPane object.
-     * @return an Array, the first value being the text's onset & the second being the text's length
+     * Helper method that sets the JTextPane's character attribute set over the selected text
      */
-    private int[] getSelectedTextPositon() {
+    private void setTextPaneAttributes(SimpleAttributeSet set) {
         int start = textPane.getSelectionStart();
         int length = textPane.getSelectionEnd() - start;
-        int[] array = {start, length};
-        return array;
-    }
-
-    private void pushToUndoStack() {
-        // undoTextStack.push(textPane.getText());
-        // undoAttributeStack.push(textPane.getCharacterAttributes());
+        textPane.getStyledDocument().setCharacterAttributes(start, length, set, false);
     }
     
 }

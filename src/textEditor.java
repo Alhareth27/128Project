@@ -2,14 +2,12 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.*;
 import java.util.*;
 import javax.swing.event.*;
-import javax.swing.filechooser.*;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
+import javax.swing.text.StyledEditorKit;
 import javax.swing.undo.UndoManager;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -22,28 +20,24 @@ public class textEditor extends JFrame implements ActionListener {
     private static final Dimension SCROLL_BOUNDS = new Dimension(900, 750);
     private static final int DEFAULT_FONT_SIZE = 30;
 
-    JTextPane PaneArea;
+    private JTextPane PaneArea;
 
-    JButton fontcolor;
-    JComboBox<String> fontList;
+    private JButton fontcolor;
+    private JComboBox<String> fontList;
 
-    JButton bold;
-    JButton AutoCompleteButton;
-    JButton italic;
+    private JButton bold;
+    private JButton AutoCompleteButton;
+    private JButton italic;
 
-    JMenuBar MenuBar;
-    JMenuItem Open;
-    JMenuItem Exit;
-    JMenuItem Save;
-    JMenuItem Undo;
-    JMenuItem Redo;
+    private JMenuBar MenuBar;
+    private JMenuItem Open;
+    private JMenuItem Exit;
+    private JMenuItem Save;
+    private JMenuItem Undo;
+    private JMenuItem Redo;
 
-    int countofBold = 1;
-    int countofItalic = 1;
-    public ArrayDeque<String> stack;
-    public UndoManager undoManager;
-    boolean actionIsPerformed = false;
-    // public TextVersions TextState;
+    // public UndoManager undoManager;
+    // boolean actionIsPerformed = false;
     public static SizedStack<String> undoStack;
     public SizedStack<String> redoStack;
 
@@ -57,50 +51,10 @@ public class textEditor extends JFrame implements ActionListener {
         this.setSize(WINDOW_SIZE);
         this.setLayout(new FlowLayout());
         this.setLocationRelativeTo(null);
-        // Container contentPane = this.getContentPane();
-        // Container contentPane = getContentPane();
 
         setUpTextArea();
         format = new FormattingOptions(PaneArea);
 
-        // undoManager = new UndoManager();
-        // textPane.getDocument().addUndoableEditListener(e -> {
-        // undoManager.addEdit(e.getEdit());
-        // });
-        // Action undoAction = new AbstractAction() {
-        // @Override
-        // public void actionPerformed(ActionEvent e) {
-        // if (e.getSource() == Undo) {
-
-        // }
-        // }
-        // };
-
-        // stack = new ArrayDeque<String>();
-        // textPane.getDocument().addDocumentListener(new DocumentListener() {
-        // @Override
-        // public void insertUpdate(DocumentEvent e) {
-        // update();
-        // throw new UnsupportedOperationException("Unimplemented method
-        // 'insertUpdate'");
-        // }
-
-        // @Override
-        // public void removeUpdate(DocumentEvent e) {
-        // update();
-        // throw new UnsupportedOperationException("Unimplemented method
-        // 'removeUpdate'");
-        // }
-
-        // @Override
-        // public void changedUpdate(DocumentEvent e) {
-        // update();
-        // throw new UnsupportedOperationException("Unimplemented method
-        // 'changedUpdate'");
-        // }
-        // });
-
-        // --------------------------------
         setUpMenuBar();
         bold = setUpButton("Bold");
         AutoCompleteButton = setUpButton("AutoComplete");
@@ -113,24 +67,6 @@ public class textEditor extends JFrame implements ActionListener {
         addScrollBar(PaneArea);
         this.setVisible(true);
 
-        // public met update() {
-        // Character currentText = textPane.getText().getChars(ERROR, ALLBITS, null,
-        // ABORT);
-        // ;
-        // stack.push(currentText);
-        // }
-
-        // public void Undoevent() {
-        // if (!stack.isEmpty()) {
-        // stack.pop();
-        // }
-        // if (!stack.isEmpty()) {
-        // String previousText = stack.peek();
-        // textPane.setText(previousText);
-        // } else {
-        // textPane.setText(".");
-        // }
-        // TextState = new TextVersions(this);
         undoStack = new SizedStack<>(20);
         redoStack = new SizedStack<>(20);
 
@@ -169,7 +105,6 @@ public class textEditor extends JFrame implements ActionListener {
     public JTextPane setUpTextArea() {
         PaneArea = new JTextPane();
         PaneArea.setFont(new Font("Arial", Font.PLAIN, 30));
-        //
 
         // Enable word wrap
         StyledDocument doc = PaneArea.getStyledDocument();
@@ -179,8 +114,7 @@ public class textEditor extends JFrame implements ActionListener {
 
         JScrollPane scrollPane = new JScrollPane(PaneArea);
         scrollPane.setPreferredSize(new Dimension(400, 300));
-        // Add the scroll pane to your container or panel
-        // container.add(scrollPane);
+        
         PaneArea.addKeyListener(new KeyListener() {
             //Unnecessary methods
             public void keyPressed(KeyEvent e) {}
@@ -211,7 +145,9 @@ public class textEditor extends JFrame implements ActionListener {
 
         fontSpinner.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
-                PaneArea.setFont(new Font(PaneArea.getFont().getFamily(), Font.PLAIN, (int) fontSpinner.getValue()));
+                if ((int) fontSpinner.getValue() > 4) {
+                    format.setFontSize((int) fontSpinner.getValue());
+                }
             }
         });
         this.add(fontText);
@@ -268,68 +204,10 @@ public class textEditor extends JFrame implements ActionListener {
                 format.setFontStyle(font);
             }
             else if (e.getSource() == italic) {
-                countofItalic++;
-                // Font currentFont = PaneArea.getFont();
-                // String s = PaneArea.getSelectedText();
-    
-                // // Get selected text
-                // String selectedText = PaneArea.getSelectedText();
-                // StyledDocument doc = PaneArea.getStyledDocument();
-                // int selectionStart = PaneArea.getSelectionStart();
-                // int selectionEnd = PaneArea.getSelectionEnd();
-                // String bold = selectedText.toLowerCase();
-    
-                // // Check if the selected text is already bold
-                // boolean isBold = (currentFont.getStyle() & Font.BOLD) != 0;
-    
-                StyledDocument doc = PaneArea.getStyledDocument();
-                int selectionStart = PaneArea.getSelectionStart();
-                int selectionEnd = PaneArea.getSelectionEnd();
-                // Create a simple attribute set for styling
-                SimpleAttributeSet italicAttrs = new SimpleAttributeSet();
-                StyleConstants.setItalic(italicAttrs, true);
-                SimpleAttributeSet Plain = new SimpleAttributeSet();
-                StyleConstants.setItalic(Plain, false);
-
-                // Apply the bold attribute to the selected text
-                if (countofItalic % 2 == 0) {
-                    doc.setCharacterAttributes(selectionStart, selectionEnd - selectionStart, italicAttrs, false);
-                } else {
-                    doc.setCharacterAttributes(selectionStart, selectionEnd - selectionStart, Plain, true); 
-                }
-                // TextState.saveState();
+                format.setItalic();
             }
             else if (e.getSource() == bold) {
-                countofBold++;
-                // Font currentFont = PaneArea.getFont();
-                // String s = PaneArea.getSelectedText();
-    
-                // // Get selected text
-                // String selectedText = PaneArea.getSelectedText();
-                // StyledDocument doc = PaneArea.getStyledDocument();
-                // int selectionStart = PaneArea.getSelectionStart();
-                // int selectionEnd = PaneArea.getSelectionEnd();
-                // String bold = selectedText.toLowerCase();
-    
-                // // Check if the selected text is already bold
-                // boolean isBold = (currentFont.getStyle() & Font.BOLD) != 0;
-    
-                StyledDocument doc = PaneArea.getStyledDocument();
-                int selectionStart = PaneArea.getSelectionStart();
-                int selectionEnd = PaneArea.getSelectionEnd();
-                // Create a simple attribute set for styling
-                SimpleAttributeSet boldAttrs = new SimpleAttributeSet();
-                StyleConstants.setBold(boldAttrs, true);
-                SimpleAttributeSet Plain = new SimpleAttributeSet();
-                StyleConstants.setBold(Plain, false);
-
-                // Apply the bold attribute to the selected text
-                if (countofBold % 2 == 0) {
-                    doc.setCharacterAttributes(selectionStart, selectionEnd - selectionStart, boldAttrs, false);
-                } else {
-                    doc.setCharacterAttributes(selectionStart, selectionEnd - selectionStart,
-                            Plain, true);
-                }
+                format.setBold();
             }
         }
         if (e.getSource() == Open) {
@@ -341,15 +219,6 @@ public class textEditor extends JFrame implements ActionListener {
         else if (e.getSource() == Save) {
             format.saveFile();
         }
-        // }
-        // if (e.getSource() == Undo) {
-        // Undoevent();
-        // }
-        // if (e.getSource() == Undo) {
-        // if (undoManager.canUndo()) {
-        // undoManager.undo();
-        // }
-        // }
         else if (e.getSource() == Undo) {
             String text = undoStack.pop();
             redoStack.push(text);
@@ -385,16 +254,6 @@ public class textEditor extends JFrame implements ActionListener {
             }
             PaneArea.setText(newText.toString());
         }
-
-        // if (e.getSource() == bold) {
-        // countofBold++;
-        // Font currentFont = textArea.getFont();
-        // if (countofBold % 2 == 0) {
-        // textArea.setFont(currentFont.deriveFont(Font.BOLD));
-        // } else {
-        // textArea.setFont(currentFont.deriveFont(Font.PLAIN));
-        // }
-        // }
     }
 
     public static void main(String[] args) {

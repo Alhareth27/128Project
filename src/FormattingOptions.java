@@ -1,14 +1,8 @@
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.*;
 
 import java.awt.Color;
-import javax.swing.text.*;
 import java.awt.Font;
-import java.io.PrintWriter;
-// import java.util.ArrayDeque;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Scanner;
 
 public class FormattingOptions {
 
@@ -19,6 +13,9 @@ public class FormattingOptions {
         this.textPane = textPane;
     }
 
+    /**
+     * Sets any selected text to the privided color and displays it.
+     */
     public void setTextColor(Color color) {
         SimpleAttributeSet set = new SimpleAttributeSet();
         StyleConstants.setForeground(set, color);
@@ -26,6 +23,9 @@ public class FormattingOptions {
         StyleConstants.setForeground(textPane.getInputAttributes(), Color.BLACK);
     }
 
+    /**
+     * Sets any selected text to the given font on the text pane.
+     */
     public void setFontStyle(Font font) {
         SimpleAttributeSet set = new SimpleAttributeSet();
         StyleConstants.setFontFamily(set, font.getName());
@@ -33,6 +33,9 @@ public class FormattingOptions {
         StyleConstants.setFontFamily(textPane.getInputAttributes(), "Arial");
     }
 
+    /**
+     * Sets any selected text to the selected size on the text pane.
+     */
     public void setFontSize(int size) {
         SimpleAttributeSet set = new SimpleAttributeSet();
         StyleConstants.setFontSize(set, size);
@@ -40,6 +43,10 @@ public class FormattingOptions {
         StyleConstants.setFontSize(textPane.getInputAttributes(), DEFAULT_FONT_SIZE);
     }
 
+    /**
+     * Italicizes the selected text from the text pane if it isn't, 
+     * or unitalicizes it if the text is italicized.
+     */
     public void setItalic() {
         SimpleAttributeSet oldSet = new SimpleAttributeSet();
         SimpleAttributeSet newSet = new SimpleAttributeSet();
@@ -49,6 +56,10 @@ public class FormattingOptions {
         setTextPaneAttributes(newSet);
     }
 
+    /**
+     * Bolds the selected text from the text pane if it's not bold,
+     * or unbolds it if the text is bolded.
+     */
     public void setBold() {
         SimpleAttributeSet oldSet = new SimpleAttributeSet();
         SimpleAttributeSet newSet = new SimpleAttributeSet();
@@ -56,61 +67,6 @@ public class FormattingOptions {
         boolean bold = StyleConstants.isBold(oldSet) ? false : true;
         StyleConstants.setBold(newSet, bold);
         setTextPaneAttributes(newSet);
-    }
-
-    public void openFile() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setCurrentDirectory(new File("."));
-        FileNameExtensionFilter filter = new FileNameExtensionFilter("text Files", "txt");
-        fileChooser.setFileFilter(filter);
-        int response = fileChooser.showOpenDialog(null);
-
-        if (response == JFileChooser.APPROVE_OPTION) {
-            File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
-            Scanner infile = null;
-            try {
-                infile = new Scanner(file);
-                if (file.isFile()) {
-                    textPane.setText("");
-                    while (infile.hasNextLine()) {
-                        String line = infile.nextLine() + "\n";
-                        textPane.getDocument().insertString(textPane.getDocument().getLength(), line, null);
-                    }
-                }
-            } catch (FileNotFoundException e1) {
-                e1.printStackTrace();
-            } catch (BadLocationException e1) {
-                e1.printStackTrace();
-            } finally {
-                if (infile != null) {
-                    infile.close();
-                }
-            }
-        }
-    }
-
-    public void saveFile() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setCurrentDirectory(new File("."));
-
-        int response = fileChooser.showSaveDialog(null);
-
-        if (response == JFileChooser.APPROVE_OPTION) {
-            File file;
-            PrintWriter outfile = null;
-
-            file = new File(fileChooser.getSelectedFile().getAbsolutePath());
-
-            try {
-                outfile = new PrintWriter(file);
-                outfile.println(textPane.getText());
-
-            } catch (FileNotFoundException e1) {
-                e1.printStackTrace();
-            } finally {
-                outfile.close();
-            }
-        }
     }
     
     /**
@@ -121,5 +77,4 @@ public class FormattingOptions {
         int length = textPane.getSelectionEnd() - start;
         textPane.getStyledDocument().setCharacterAttributes(start, length, set, false);
     }
-    
 }

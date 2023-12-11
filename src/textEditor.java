@@ -1,18 +1,22 @@
-
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+
+import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.Random;
+
+import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
-import javax.swing.text.StyledEditorKit;
-import javax.swing.undo.UndoManager;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.BadLocationException;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.Random;
 
 public class textEditor extends JFrame implements ActionListener {
 
@@ -22,12 +26,12 @@ public class textEditor extends JFrame implements ActionListener {
 
     private JTextPane PaneArea;
 
-    private JButton fontcolor;
+    private JButton fontColor;
     private JComboBox<String> fontList;
 
-    private JButton bold;
+    private JButton Bold;
     private JButton AutoCompleteButton;
-    private JButton italic;
+    private JButton Italics;
 
     private JMenuBar MenuBar;
     private JMenuItem Open;
@@ -36,13 +40,9 @@ public class textEditor extends JFrame implements ActionListener {
     private JMenuItem Undo;
     private JMenuItem Redo;
 
-    // public UndoManager undoManager;
-    // boolean actionIsPerformed = false;
     public static SizedStack<String> undoStack;
     public SizedStack<String> redoStack;
 
-    KeyStroke undoKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_Z,
-            Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
     private FormattingOptions format;   
     
     textEditor() {
@@ -52,19 +52,19 @@ public class textEditor extends JFrame implements ActionListener {
         this.setLayout(new FlowLayout());
         this.setLocationRelativeTo(null);
 
-        setUpTextArea();
+        setUpTextPane();
         format = new FormattingOptions(PaneArea);
 
         setUpMenuBar();
-        bold = setUpButton("Bold");
+        Bold = setUpButton("Bold");
         AutoCompleteButton = setUpButton("AutoComplete");
-        italic = setUpButton("Italics");
-        fontcolor = setUpButton("Text Color");
+        Italics = setUpButton("Italics");
+        fontColor = setUpButton("Text Color");
 
         setUpFontSize();
         setUpFontStyle();
 
-        addScrollBar(PaneArea);
+        addScrollBar();
         this.setVisible(true);
 
         undoStack = new SizedStack<>(20);
@@ -79,41 +79,18 @@ public class textEditor extends JFrame implements ActionListener {
             if (undoStack.isEmpty() || !undoStack.peek().equals(currentText)) {
                 undoStack.push(currentText);
             }
-
-            System.out.println("=================");
-            System.out.println(Arrays.toString(undoStack.toArray()));
-            System.out.println(Arrays.toString(redoStack.toArray()));
-            System.out.println("=================");
         };
 
         // Schedule the code snippet to run every 5 seconds
         executor.scheduleAtFixedRate(codeSnippet, 0, 1, TimeUnit.SECONDS);
-
-        // new java.util.Timer().schedule(
-        // new java.util.TimerTask() {
-        // @Override
-        // public void run() {
-        // undoStack.push("hi");
-        // System.out.println("-----UNDO STACK BITCH -----");
-        // System.out.println(Arrays.toString(undoStack.toArray()));
-        // System.out.println("-----UNDO STACK BITCH -----");
-        // }
-        // },
-        // 5000);
     }
-
-    public JTextPane setUpTextArea() {
+    
+    /**
+     * Creates a new Text Pane, and adds necessary listeners to the text pane
+     */
+    private void setUpTextPane() {
         PaneArea = new JTextPane();
         PaneArea.setFont(new Font("Arial", Font.PLAIN, 30));
-
-        // Enable word wrap
-        StyledDocument doc = PaneArea.getStyledDocument();
-        SimpleAttributeSet attrs = new SimpleAttributeSet();
-        StyleConstants.setLineSpacing(attrs, 0.5f);
-        doc.setParagraphAttributes(0, doc.getLength(), attrs, false);
-
-        JScrollPane scrollPane = new JScrollPane(PaneArea);
-        scrollPane.setPreferredSize(new Dimension(400, 300));
         
         PaneArea.addKeyListener(new KeyListener() {
             //Unnecessary methods
@@ -122,21 +99,26 @@ public class textEditor extends JFrame implements ActionListener {
 
             public void keyTyped(KeyEvent e) { 
                 if (!redoStack.isEmpty()) {
-                    redoStack.clear(); //Newly typed keys will conflict with stored redos
+                    redoStack.clear(); //Newly typed keys will conflict with stored redos if not cleared
                 }
             }
         });
-        return PaneArea;
     }
 
-    public void addScrollBar(JTextPane PaneArea) {
+    /**
+     * Creates and adds a vertical scroll bar to the text pane
+     */
+    private void addScrollBar() {
         JScrollPane Scroll = new JScrollPane(PaneArea);
         Scroll.setPreferredSize(new Dimension(SCROLL_BOUNDS));
         Scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         this.add(Scroll);
     }
 
-    public void setUpFontSize() {
+    /**
+     * Sets up the functionality of changing the font size of selected text, and displays it onto the text pane
+     */
+    private void setUpFontSize() {
         JLabel fontText = new JLabel("Font Size: ");
         JSpinner fontSpinner = new JSpinner();
         fontSpinner.setPreferredSize(new Dimension(50, 50));
@@ -154,7 +136,10 @@ public class textEditor extends JFrame implements ActionListener {
         this.add(fontSpinner);
     }
 
-    public void setUpFontStyle() {
+    /**
+     * Sets up the ability to change font stlyes of the text, and displays it on the text pane
+     */
+    private void setUpFontStyle() {
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         String[] fonts = ge.getAvailableFontFamilyNames();
         fontList = new JComboBox<String>(fonts);
@@ -162,7 +147,10 @@ public class textEditor extends JFrame implements ActionListener {
         this.add(fontList);
     }
 
-    public void setUpMenuBar() {
+    /**
+     * Sets up a menu bar to store various methods not related to directly modifying text.
+     */
+    private void setUpMenuBar() {
         MenuBar = new JMenuBar();
         JMenu menu = new JMenu("File");
         Open = setUpMenuItem("Open", menu);
@@ -173,29 +161,48 @@ public class textEditor extends JFrame implements ActionListener {
 
         MenuBar.add(menu);
         this.setJMenuBar(MenuBar);
-        Undo.setAccelerator(undoKeyStroke);
-        // Redo.setAccelerator(redoKeyStroke);
+
+        //Adds keyboard shortcuts to undo and redo commands
+        addKeyboardShortcut(Undo, KeyEvent.VK_Z);
+        addKeyboardShortcut(Redo, KeyEvent.VK_Y);
     }
 
-    public JMenuItem setUpMenuItem(String text, JMenu menu) {
+    /**
+     * Creates and sets up a new JMenuItem with the given title, adds it to the provided JMenu, and returns it.
+     */
+    private JMenuItem setUpMenuItem(String text, JMenu menu) {
         JMenuItem option = new JMenuItem(text);
         option.addActionListener(this);
         menu.add(option);
         return option;
     }
 
-    public JButton setUpButton(String text) {
+    /**
+     * Sets up a new JButton with the given text, adds it to the displayed window, and returns it.
+     */
+    private JButton setUpButton(String text) {
         JButton button = new JButton(text);
         button.addActionListener(this);
         this.add(button);
         return button;
     }
 
+    /**
+     * Binds the given KeyEvent key with the given JMenuItem.
+     */
+    private void addKeyboardShortcut(JMenuItem menuItem, int keyEventKey) {
+        KeyStroke keyStroke = KeyStroke.getKeyStroke(keyEventKey, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
+        menuItem.setAccelerator(keyStroke);
+    }
+
+    /**
+     * Checks through every implemented editing option when called, and does the according modification/action
+     */
     public void actionPerformed(ActionEvent e) {
         // Check if there is selected text and it's not empty
         if (PaneArea.getSelectedText() != null) {
 
-            if (e.getSource() == fontcolor) {
+            if (e.getSource() == fontColor) {
                 Color color = JColorChooser.showDialog(null, "Choose a Color", Color.BLACK);
                 format.setTextColor(color);
             }
@@ -203,32 +210,34 @@ public class textEditor extends JFrame implements ActionListener {
                 Font font = new Font((String) fontList.getSelectedItem(), Font.PLAIN, PaneArea.getFont().getSize());
                 format.setFontStyle(font);
             }
-            else if (e.getSource() == italic) {
+            else if (e.getSource() == Italics) {
                 format.setItalic();
             }
-            else if (e.getSource() == bold) {
+            else if (e.getSource() == Bold) {
                 format.setBold();
             }
         }
         if (e.getSource() == Open) {
-            format.openFile();
+            openFile();
         }
         else if (e.getSource() == Exit) {
             System.exit(ABORT);
         }
         else if (e.getSource() == Save) {
-            format.saveFile();
+            saveFile();
         }
         else if (e.getSource() == Undo) {
-            String text = undoStack.pop();
-            redoStack.push(text);
-            PaneArea.setText(undoStack.peek());
+            if (undoStack.size() > 1) {
+                String text = undoStack.pop();
+                redoStack.push(text);
+                PaneArea.setText(undoStack.peek());
+            }
         }
         else if (e.getSource() == Redo) {
             PaneArea.setText(redoStack.pop());
         }
         else if (e.getSource() == AutoCompleteButton) {
-            String text = undoStack.get(undoStack.indexOf(undoStack.lastElement())); // Get the text and remove
+            String text = undoStack.pop(); // Get the text and remove
             String[] wordsArray = text.split("\\s+");
             String[] lastword = new String[1];
             lastword[0] = wordsArray[wordsArray.length - 1];
@@ -256,12 +265,62 @@ public class textEditor extends JFrame implements ActionListener {
         }
     }
 
+        public void openFile() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setCurrentDirectory(new File("."));
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("text Files", "txt");
+        fileChooser.setFileFilter(filter);
+        int response = fileChooser.showOpenDialog(null);
+
+        if (response == JFileChooser.APPROVE_OPTION) {
+            File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+            Scanner infile = null;
+            try {
+                infile = new Scanner(file);
+                if (file.isFile()) {
+                    PaneArea.setText("");
+                    while (infile.hasNextLine()) {
+                        String line = infile.nextLine() + "\n";
+                        PaneArea.getDocument().insertString(PaneArea.getDocument().getLength(), line, null);
+                    }
+                }
+            } catch (FileNotFoundException e1) {
+                e1.printStackTrace();
+            } catch (BadLocationException e1) {
+                e1.printStackTrace();
+            } finally {
+                if (infile != null) {
+                    infile.close();
+                }
+            }
+        }
+    }
+
+    public void saveFile() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setCurrentDirectory(new File("."));
+
+        int response = fileChooser.showSaveDialog(null);
+
+        if (response == JFileChooser.APPROVE_OPTION) {
+            File file;
+            PrintWriter outfile = null;
+
+            file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+
+            try {
+                outfile = new PrintWriter(file);
+                outfile.println(PaneArea.getText());
+
+            } catch (FileNotFoundException e1) {
+                e1.printStackTrace();
+            } finally {
+                outfile.close();
+            }
+        }
+    }
+
     public static void main(String[] args) {
         new textEditor();
     }
-
-    public JTextPane getPaneArea() {
-        return PaneArea;
-    }
-
 }

@@ -216,6 +216,7 @@ public class textEditor extends JFrame implements ActionListener {
             else if (e.getSource() == Bold) {
                 format.setBold();
             }
+            return;
         }
         if (e.getSource() == Open) {
             openFile();
@@ -228,13 +229,17 @@ public class textEditor extends JFrame implements ActionListener {
         }
         else if (e.getSource() == Undo) {
             if (undoStack.size() > 1) {
-                String text = undoStack.pop();
-                redoStack.push(text);
+                redoStack.push(undoStack.pop());
                 PaneArea.setText(undoStack.peek());
             }
         }
         else if (e.getSource() == Redo) {
-            PaneArea.setText(redoStack.pop());
+            if (redoStack.size() >= 1) {
+                String text =  redoStack.pop();
+                undoStack.push(text);
+                PaneArea.setText(text);
+
+            }
         }
         else if (e.getSource() == AutoCompleteButton) {
             String text = undoStack.pop(); // Get the text and remove
@@ -293,6 +298,8 @@ public class textEditor extends JFrame implements ActionListener {
                     infile.close();
                 }
             }
+            undoStack.clear();
+            redoStack.clear();
         }
     }
 
@@ -306,7 +313,7 @@ public class textEditor extends JFrame implements ActionListener {
             File file;
             PrintWriter outfile = null;
 
-            file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+            file = new File(fileChooser.getSelectedFile().getAbsolutePath() + ".txt");
 
             try {
                 outfile = new PrintWriter(file);

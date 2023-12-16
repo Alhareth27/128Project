@@ -6,7 +6,6 @@ import java.awt.Font;
 
 public class FormattingOptions {
 
-    private static final int DEFAULT_FONT_SIZE = 30;
     private JTextPane textPane;
 
     public FormattingOptions(JTextPane textPane) {
@@ -20,7 +19,6 @@ public class FormattingOptions {
         SimpleAttributeSet set = new SimpleAttributeSet();
         StyleConstants.setForeground(set, color);
         setTextPaneAttributes(set);
-        StyleConstants.setForeground(textPane.getInputAttributes(), Color.BLACK);
     }
 
     /**
@@ -30,7 +28,6 @@ public class FormattingOptions {
         SimpleAttributeSet set = new SimpleAttributeSet();
         StyleConstants.setFontFamily(set, font.getName());
         setTextPaneAttributes(set);
-        StyleConstants.setFontFamily(textPane.getInputAttributes(), "Arial");
     }
 
     /**
@@ -40,7 +37,6 @@ public class FormattingOptions {
         SimpleAttributeSet set = new SimpleAttributeSet();
         StyleConstants.setFontSize(set, size);
         setTextPaneAttributes(set);
-        StyleConstants.setFontSize(textPane.getInputAttributes(), DEFAULT_FONT_SIZE);
     }
 
     /**
@@ -76,5 +72,9 @@ public class FormattingOptions {
         int start = textPane.getSelectionStart();
         int length = textPane.getSelectionEnd() - start;
         textPane.getStyledDocument().setCharacterAttributes(start, length, set, false);
+    }
+
+    public String toString() {
+        return "A text formatting helper, associated with a JTextPane called " + textPane.getName();
     }
 }

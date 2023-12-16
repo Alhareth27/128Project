@@ -2,45 +2,15 @@ import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Random;
+
 
 public class AutoComplete {
 
-    /**
-     * Main method that autocompletes words
-     * This could be used for predictive text entry, like in a cell phone,
-     * or for spell checking.
-     *
-     * @param args Command line arguments
-     * @throws IOException If an I/O error occurs
-     */
-    public static void main(String args[]) throws IOException {
-        BufferedReader in = new BufferedReader(new InputStreamReader(System.in, "utf-8"));
-        while (true) {
-            System.out.println("Enter text prefix to search, or 'stop'.");
-            String text = in.readLine();
-            if (text.trim().equalsIgnoreCase("stop")) {
-                break;
-            }
-            String[] word = { text };
-            ArrayList<String> words = getAutoCompleteSuggestions(word);
-            if (words.isEmpty()) {
-                System.out.println("No words found with the prefix: " + text);
-            } else {
-                System.out.println("========== Results =============");
-                words.forEach(System.out::println);
-            }
-            System.out.println();
-        }
-    }
+    private PrefixTree tree;
 
-    /**
-     * Method to get autocomplete suggestions based on a given word.
-     *
-     * @param word The word to get autocomplete suggestions for.
-     * @return ArrayList of autocomplete suggestions for the given word.
-     */
-    public static ArrayList<String> getAutoCompleteSuggestions(String[] word) {
-        PrefixTree tree = new PrefixTree();
+    public AutoComplete() {
+        tree = new PrefixTree();
 
         // Load dictionary or words from file into the prefix tree
         File file = getFile("res/dictionary.txt"); // Replace with your dictionary file path
@@ -54,16 +24,42 @@ public class AutoComplete {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
-        // Get autocomplete suggestions for the provided word
-        ArrayList<String> words = tree.getWordsForPrefix(word[0]);
-        return words;
+    /**
+     * Returns a random word that starts with the given prefix
+     */
+    public String AutoCompleteWord(String prefix) {
+        ArrayList<String> words = getAutoCompleteSuggestions(prefix);
+        Random random = new Random();
+        String suggestion = "";
+        if (words != null) {
+            if (words.size() == 1) {
+                return words.get(0); //If thre'sonly one option, return that option.
+            }
+            suggestion = words.get(random.nextInt(words.size() - 1));
+        }
+        return suggestion;
+    }
+
+    /**
+     * Method to get autocomplete suggestions based on a given word.
+     *
+     * @param word The word to get autocomplete suggestions for.
+     * @return ArrayList of autocomplete suggestions for the given word.
+     */
+    private ArrayList<String> getAutoCompleteSuggestions(String word) {
+        if (tree.contains(word)) {
+            ArrayList<String> words = tree.getWordsForPrefix(word);
+            return words;
+        }
+        return null;
     }
 
     /**
      * Loads a file from the res folder.
      **/
-    public static File getFile(String resourceName) {
+    private static File getFile(String resourceName) {
         try {
             URL url = AutoComplete.class.getResource("/" + resourceName);
             if (url != null) {
@@ -76,5 +72,9 @@ public class AutoComplete {
             syntaxException.printStackTrace();
             return null;
         }
+    }
+
+    public String toString() {
+        return "An Autocomplete helper, containing " + tree.size() + "words";
     }
 }

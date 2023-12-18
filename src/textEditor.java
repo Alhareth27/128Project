@@ -35,11 +35,11 @@ public class textEditor extends JFrame implements ActionListener {
     public SizedStack<String> redoStack;
 
     KeyStroke undoKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_Z,
-            Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+            Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
     KeyStroke redoKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_R,
-            Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+            Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
     KeyStroke rightArrowKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT,
-            Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+            Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
 
     private FormattingOptions format;
     private AutoComplete autocomplete;

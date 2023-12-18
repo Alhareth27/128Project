@@ -64,8 +64,7 @@ public class PrefixTree {
 
     /**
      * Finds the words in the tree that start with prefix (including prefix if it is
-     * a word itself). The
-     * order of the list can be arbitrary.
+     * a word itself). The order of the list can be arbitrary.
      * 
      * @param prefix
      * @return list of words with prefix
@@ -94,6 +93,10 @@ public class PrefixTree {
      */
     public int size() {
         return size;
+    }
+
+    public String toString() {
+        return "A tree containing " + size + "words";
     }
 
 }

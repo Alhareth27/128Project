@@ -1,6 +1,6 @@
-import java.util.Stack;
+import java.util.ArrayDeque;
 
-public class SizedStack<T> extends Stack<T> {
+public class SizedStack<T> extends ArrayDeque<T> {
     private int maxSize;
 
     public SizedStack(int size) {
@@ -9,11 +9,16 @@ public class SizedStack<T> extends Stack<T> {
     }
 
     @Override
-    public T push(T object) {
-        // If the stack is too big, remove elements until it's the right size.
-        while (this.size() >= maxSize) {
-            this.remove(0);
+    public void push(T object) {
+        // If the stack is too big, remove the oldest element to make room
+        if (this.size() >= maxSize) {
+            this.removeLast();
         }
-        return super.push(object);
+        super.push(object);
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + ", with a max size of: " + maxSize;
     }
 }

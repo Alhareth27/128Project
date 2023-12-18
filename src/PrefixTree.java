@@ -79,7 +79,13 @@ public class PrefixTree {
         return ArrayofWords;
     }
 
-    public void RecursiveCall(ArrayList<String> ArrayofWords, TreeNode root, String Singleword) {
+    /**
+     * Helper method that recursively adds any words with a given prefix
+     * to the provided ArrayList of Words.
+     * @param root the local TreeNode
+     * @param Singleword The word to add int the Arraylist
+     */
+    private void RecursiveCall(ArrayList<String> ArrayofWords, TreeNode root, String Singleword) {
         if (root.isWord) {
             ArrayofWords.add(Singleword);
         }

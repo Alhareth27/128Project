@@ -34,13 +34,6 @@ public class textEditor extends JFrame implements ActionListener {
     public static SizedStack<String> undoStack;
     public SizedStack<String> redoStack;
 
-    KeyStroke undoKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_Z,
-            Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
-    KeyStroke redoKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_R,
-            Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
-    KeyStroke rightArrowKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT,
-            Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
-
     private FormattingOptions format;
     private AutoComplete autocomplete;
 
@@ -218,12 +211,15 @@ public class textEditor extends JFrame implements ActionListener {
             if (e.getSource() == fontColor) {
                 Color color = JColorChooser.showDialog(null, "Choose a Color", Color.BLACK);
                 format.setTextColor(color);
-            } else if (e.getSource() == fontList) {
+            } 
+            else if (e.getSource() == fontList) {
                 Font font = new Font((String) fontList.getSelectedItem(), Font.PLAIN, PaneArea.getFont().getSize());
                 format.setFontStyle(font);
-            } else if (e.getSource() == Italics) {
+            } 
+            else if (e.getSource() == Italics) {
                 format.setItalic();
-            } else if (e.getSource() == Bold) {
+            } 
+            else if (e.getSource() == Bold) {
                 format.setBold();
             }
         }
@@ -232,22 +228,27 @@ public class textEditor extends JFrame implements ActionListener {
             undoStack.clear();
             undoStack.push(PaneArea.getText());
             redoStack.clear();
-        } else if (e.getSource() == Save) {
+        } 
+        else if (e.getSource() == Save) {
             FileOptions.saveFile(PaneArea);
-        } else if (e.getSource() == Exit) {
+        } 
+        else if (e.getSource() == Exit) {
             System.exit(ABORT);
-        } else if (e.getSource() == Undo) {
+        } 
+        else if (e.getSource() == Undo) {
             if (undoStack.size() > 1) {
                 redoStack.push(undoStack.pop());
                 PaneArea.setText(undoStack.peek());
             }
-        } else if (e.getSource() == Redo) {
+        } 
+        else if (e.getSource() == Redo) {
             if (redoStack.size() >= 1) {
                 String text = redoStack.pop();
                 undoStack.push(text);
                 PaneArea.setText(text);
             }
-        } else if (e.getSource() == AutoCompleteButton) {
+        } 
+        else if (e.getSource() == AutoCompleteButton) {
             String text = PaneArea.getText();
             String[] textArray = text.split(" ");
             String lastWord = textArray[textArray.length - 1];

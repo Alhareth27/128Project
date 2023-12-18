@@ -54,6 +54,8 @@ public class textEditor extends JFrame implements ActionListener {
             Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
     KeyStroke redoKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_R,
             Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    KeyStroke rightArrowKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT,
+            Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
 
     textEditor() throws BadLocationException {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -115,6 +117,13 @@ public class textEditor extends JFrame implements ActionListener {
 
         addScrollBar(PaneArea);
         this.setVisible(true);
+
+        Action action = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+            }
+        };
 
         // public met update() {
         // Character currentText = textArea.getText().getChars(ERROR, ALLBITS, null,

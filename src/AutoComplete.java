@@ -4,7 +4,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Random;
 
-
 public class AutoComplete {
 
     private PrefixTree tree;
@@ -13,7 +12,7 @@ public class AutoComplete {
         tree = new PrefixTree();
 
         // Load dictionary or words from file into the prefix tree
-        File file = getFile("res/Common.txt"); // Replace with your dictionary file path
+        File file = getFile("res/Untitled.txt"); // Replace with your dictionary file path
         try {
             BufferedReader reader = new BufferedReader(new FileReader(file));
             String dictionaryWord;
@@ -35,7 +34,7 @@ public class AutoComplete {
         String suggestion = "";
         if (words != null) {
             if (words.size() == 1) {
-                return words.get(0); //If thre'sonly one option, return that option.
+                return words.get(0); // If thre'sonly one option, return that option.
             }
             suggestion = words.get(random.nextInt(words.size() - 1));
         }
